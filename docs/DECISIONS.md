@@ -49,3 +49,19 @@ precision and citation accuracy.
 **Decision.** At every phase there must be a runnable end-to-end path, even with 1–3 papers.
 **Why.** Counterweight to the complexity accepted in ADR-001; protects the "tool I actually use" goal.
 **Rejected.** Build-all-infra-then-wire-it-up sequencing (high risk of the empty-cathedral failure).
+
+### ADR-008 — Neo4j as future analytics/exploration layer (parked)
+
+**Decision.** Not adopting Neo4j now. Parked as a documented option for when/if RDF/SPARQL hits bottlenecks.
+
+**Why parked, not rejected.** RDF/OWL handles the semantic layer well for current scope. Neo4j would add value for graph analytics, citation-path exploration, recommendations, and interactive visualization — but none of those are Phase 0–3 concerns. Adding it now violates the always-working-slice discipline.
+
+**The division if adopted later:**
+- RDF remains authoritative (ontology, provenance, semantic inference, SHACL validation)
+- Neo4j becomes the operational/analytical interface (graph algorithms, recommendations, navigation)
+- Sync direction: RDF → Neo4j (RDF is primary, Neo4j is a derived projection)
+
+**Trigger to revisit.** SPARQL queries become too slow or too rigid for user-facing navigation needs, OR the corpus grows large enough that graph analytics (citation networks, method similarity) become useful.
+
+**Rejected paths.** Neo4j-primary with RDF export — loses semantic guarantees. Dual-primary — no single source of truth.
+
