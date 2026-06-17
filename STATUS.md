@@ -7,32 +7,35 @@
 ---
 
 ## Where we are
-**Phase:** 0 (Skeleton & ontology) — design locked, repo foundation being laid.
+**Phase:** 0 (Skeleton & ontology) — ontology written and validated; Fuseki not yet stood up.
 **Date of last update:** (fill in)
 
-Design is settled. Knowledge store = RDF/SPARQL on Jena Fuseki. Atom = BenchmarkResult, not
-Comparison. Continuity kit (this file, DESIGN, DECISIONS, CLAUDE) created. No code yet.
+Design locked (RDF/SPARQL, BenchmarkResult-as-atom). The Turtle ontology exists as
+`ontology/mlkg.ttl` and is validated (parses to 289 triples; flagship comparison query runs and
+reproduces the README's RF-vs-XGBoost example). Documented in `docs/ONTOLOGY.md`. No backend code yet.
 
 ## Done
-- [x] Vision (README) written.
-- [x] Knowledge-store decision: RDF/SPARQL (ADR-001).
-- [x] Data model: result-as-atom (ADR-002), conditions partial-allowed (ADR-003).
-- [x] Continuity kit created (DESIGN.md, DECISIONS.md, STATUS.md, CLAUDE.md).
+- [x] Vision (README), DESIGN, DECISIONS, CLAUDE continuity kit.
+- [x] Decisions: RDF/SPARQL (ADR-001), result-as-atom (ADR-002), partial conditions (ADR-003).
+- [x] **Turtle ontology `ontology/mlkg.ttl` written + validated.** Five refinements over the sketch:
+      metric direction, numeric/text condition values, controlled-vocab condition types,
+      functional-core cardinality, conditionsComplete flag. Documented in `docs/ONTOLOGY.md`.
 
 ## In progress
-- [ ] Real Turtle ontology → `docs/ONTOLOGY.md` (refine the sketch in DESIGN.md).
-- [ ] Fuseki up locally with the ontology loaded.
+- [ ] Stand up Apache Jena Fuseki locally; load `ontology/mlkg.ttl`.
 
 ## Next actions (in order)
-1. Write the Turtle ontology from the DESIGN.md sketch.
-2. Stand up Fuseki, load the ontology, run a trivial SPARQL query (Phase 0 slice).
-3. Hand-enter ONE paper's results as triples; answer one real question with a citation (Phase 1).
+1. Run Fuseki (Docker is simplest), create dataset `mlkg`, load `ontology/mlkg.ttl`.
+2. Run a trivial SPARQL query against Fuseki's endpoint to close the **Phase 0 slice**.
+3. Hand-enter ONE real paper's results as instance triples; run the flagship comparison query
+   against the live endpoint (Phase 1 slice).
 
 ## Open questions / parking lot
-- Which 1–3 seed papers to start with? (tabular RF vs XGBoost comparisons are a good fit for the README example)
-- Condition vocabulary: do we predefine condition types (label_noise, n_rows, class_imbalance...) or let them emerge?
+- Which seed paper for Phase 1? (an RF/XGBoost-under-noise tabular study fits the example best)
+- Dataset-characteristic vs condition overlap (rule of thumb noted in ONTOLOGY.md — watch for dupes).
 - Repo name.
 
 ## Known issues / risks
-- Empty-cathedral risk (lots of infra, little data) — mitigated by always-working-slice (ADR-007).
+- Empty-cathedral risk — mitigated by always-working-slice (ADR-007).
 - Extraction quality is the real engineering risk; budget time there, not on ontology polish.
+- OWL restrictions document but do not enforce required-core; SHACL enforcement deferred to Phase 2+.

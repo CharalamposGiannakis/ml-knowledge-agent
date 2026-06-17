@@ -1,0 +1,196 @@
+@prefix :     <http://mlkg.local/ontology#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+#  Ontology header
+#################################################################
+
+<http://mlkg.local/ontology> a owl:Ontology ;
+    rdfs:label "ML Engineering Knowledge Graph ontology" ;
+    owl:versionInfo "0.1.0" ;
+    rdfs:comment """Schema for a curated knowledge graph of empirical ML-engineering
+results. The atomic unit is a BenchmarkResult (method, dataset, metric, value,
+conditions, source). Comparisons are NOT stored; they are derived at query time.
+Standard-vocabulary alignment (Dublin Core, PROV-O, BIBO) is noted in docs/ONTOLOGY.md
+and deferred until after Phase 1.""" .
+
+#################################################################
+#  Core classes
+#################################################################
+
+:Paper           a owl:Class ; rdfs:label "Paper" ;
+    rdfs:comment "A publication that reported one or more benchmark results." .
+:Method          a owl:Class ; rdfs:label "Method" ;
+    rdfs:comment "An ML method/algorithm, e.g. RandomForest, XGBoost." .
+:MethodFamily    a owl:Class ; rdfs:label "Method family" ;
+    rdfs:comment "A grouping of methods, e.g. TreeEnsemble. May nest via :subFamilyOf." .
+:Dataset         a owl:Class ; rdfs:label "Dataset" ;
+    rdfs:comment "A dataset (or dataset variant) a result was measured on." .
+:Metric          a owl:Class ; rdfs:label "Metric" ;
+    rdfs:comment "An evaluation metric. Carries an :optimizationDirection so a winner can be derived." .
+:BenchmarkResult a owl:Class ; rdfs:label "Benchmark result" ;
+    rdfs:comment "THE ATOM. One method's measured value, on one dataset, by one metric, under conditions, with a source." .
+:Condition       a owl:Class ; rdfs:label "Condition" ;
+    rdfs:comment "Reified experimental condition (typed + value) so conditions are queryable." .
+:SourceLocation  a owl:Class ; rdfs:label "Source location" ;
+    rdfs:comment "Where in a paper a result appeared: table/figure locator + page." .
+:ConditionType   a owl:Class ; rdfs:label "Condition type" ;
+    rdfs:comment "Controlled vocabulary of condition kinds (label_noise, n_rows, ...). Extend by adding individuals." .
+:OptimizationDirection a owl:Class ; rdfs:label "Optimization direction" ;
+    rdfs:comment "Whether a metric is better when higher or lower." ;
+    owl:equivalentClass [ a owl:Class ; owl:oneOf ( :HigherIsBetter :LowerIsBetter ) ] .
+
+# Top-level domain classes are pairwise disjoint.
+[] a owl:AllDisjointClasses ;
+   owl:members ( :Paper :Method :MethodFamily :Dataset :Metric
+                 :BenchmarkResult :Condition :SourceLocation :ConditionType ) .
+
+#################################################################
+#  Object properties
+#################################################################
+
+# --- BenchmarkResult core wiring (functional: exactly one each) ---
+:reportsMethod a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:label "reports method" ; rdfs:domain :BenchmarkResult ; rdfs:range :Method .
+:onDataset     a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:label "on dataset" ; rdfs:domain :BenchmarkResult ; rdfs:range :Dataset .
+:usesMetric    a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:label "uses metric" ; rdfs:domain :BenchmarkResult ; rdfs:range :Metric .
+:hasSource     a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:label "has source" ; rdfs:domain :BenchmarkResult ; rdfs:range :SourceLocation .
+
+# --- BenchmarkResult conditions (0..* — NOT functional) ---
+:underCondition a owl:ObjectProperty ;
+    rdfs:label "under condition" ; rdfs:domain :BenchmarkResult ; rdfs:range :Condition .
+
+# --- Condition typing ---
+:conditionType a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:label "condition type" ; rdfs:domain :Condition ; rdfs:range :ConditionType .
+
+# --- Provenance ---
+:fromPaper a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:label "from paper" ; rdfs:domain :SourceLocation ; rdfs:range :Paper .
+
+# --- Taxonomy ---
+:inFamily a owl:ObjectProperty ;
+    rdfs:label "in family" ; rdfs:domain :Method ; rdfs:range :MethodFamily .
+:subFamilyOf a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:label "sub-family of" ; rdfs:domain :MethodFamily ; rdfs:range :MethodFamily .
+
+# --- Metric direction ---
+:optimizationDirection a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:label "optimization direction" ; rdfs:domain :Metric ; rdfs:range :OptimizationDirection .
+
+#################################################################
+#  Datatype properties
+#################################################################
+
+# --- BenchmarkResult ---
+:hasValue a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:label "has value" ; rdfs:domain :BenchmarkResult ; rdfs:range xsd:decimal .
+:conditionsComplete a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:label "conditions complete" ; rdfs:domain :BenchmarkResult ; rdfs:range xsd:boolean ;
+    rdfs:comment "False = partial conditions captured (ADR-003). Agent must caveat answers when false." .
+
+# --- Ingestion provenance (optional; PROV-O alignment deferred) ---
+:extractedBy a owl:DatatypeProperty ;
+    rdfs:label "extracted by" ; rdfs:domain :BenchmarkResult ; rdfs:range xsd:string ;
+    rdfs:comment "Model/version that proposed this triple, e.g. 'claude-opus-4-8'." .
+:reviewedOn a owl:DatatypeProperty ;
+    rdfs:label "reviewed on" ; rdfs:domain :BenchmarkResult ; rdfs:range xsd:date .
+
+# --- Condition values (numeric path enables range queries; text path for categorical) ---
+:conditionValueNum a owl:DatatypeProperty ;
+    rdfs:label "condition value (numeric)" ; rdfs:domain :Condition ; rdfs:range xsd:decimal .
+:conditionValueText a owl:DatatypeProperty ;
+    rdfs:label "condition value (text)" ; rdfs:domain :Condition ; rdfs:range xsd:string .
+:conditionUnit a owl:DatatypeProperty ;
+    rdfs:label "condition unit" ; rdfs:domain :Condition ; rdfs:range xsd:string .
+:conditionValueMin a owl:DatatypeProperty ;
+    rdfs:label "condition value min" ; rdfs:domain :Condition ; rdfs:range xsd:decimal .
+:conditionValueMax a owl:DatatypeProperty ;
+    rdfs:label "condition value max" ; rdfs:domain :Condition ; rdfs:range xsd:decimal .
+
+# --- SourceLocation ---
+:locator a owl:DatatypeProperty ;
+    rdfs:label "locator" ; rdfs:domain :SourceLocation ; rdfs:range xsd:string ;
+    rdfs:comment "Human-readable position, e.g. 'Table 3' or 'Figure 2'." .
+:page a owl:DatatypeProperty ;
+    rdfs:label "page" ; rdfs:domain :SourceLocation ; rdfs:range xsd:integer .
+:sourceText a owl:DatatypeProperty ;
+    rdfs:label "source text" ; rdfs:domain :SourceLocation ; rdfs:range xsd:string ;
+    rdfs:comment "Optional verbatim cell/sentence, for showing the exact source in the UI." .
+
+# --- Paper metadata ---
+:title  a owl:DatatypeProperty ; rdfs:label "title"  ; rdfs:domain :Paper ; rdfs:range xsd:string .
+:year   a owl:DatatypeProperty ; rdfs:label "year"   ; rdfs:domain :Paper ; rdfs:range xsd:integer .
+:doi    a owl:DatatypeProperty ; rdfs:label "doi"    ; rdfs:domain :Paper ; rdfs:range xsd:string .
+:author a owl:DatatypeProperty ; rdfs:label "author" ; rdfs:domain :Paper ; rdfs:range xsd:string ;
+    rdfs:comment "One triple per author; ordering not preserved (sufficient for citations)." .
+:venue  a owl:DatatypeProperty ; rdfs:label "venue"  ; rdfs:domain :Paper ; rdfs:range xsd:string .
+
+# --- Dataset metadata (intrinsic descriptors; see overlap note in docs) ---
+:datasetDomain a owl:DatatypeProperty ; rdfs:label "dataset domain" ; rdfs:domain :Dataset ; rdfs:range xsd:string .
+:numRows       a owl:DatatypeProperty ; rdfs:label "num rows"       ; rdfs:domain :Dataset ; rdfs:range xsd:integer .
+:numFeatures   a owl:DatatypeProperty ; rdfs:label "num features"   ; rdfs:domain :Dataset ; rdfs:range xsd:integer .
+
+#################################################################
+#  Required-core cardinality (intent; enforcement = SHACL later)
+#################################################################
+# OWL is open-world, so these restrictions DOCUMENT the required core but do not
+# reject incomplete data on insert. Actual validation will be SHACL shapes (Phase 2+).
+
+:BenchmarkResult rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty :reportsMethod ; owl:cardinality "1"^^xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty :onDataset     ; owl:cardinality "1"^^xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty :usesMetric    ; owl:cardinality "1"^^xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty :hasValue      ; owl:cardinality "1"^^xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty :hasSource     ; owl:cardinality "1"^^xsd:nonNegativeInteger ] .
+
+#################################################################
+#  Controlled vocabulary / reference individuals
+#  (Vocabulary lives here. Paper-derived data NEVER does — it is
+#   loaded at runtime only after human review.)
+#################################################################
+
+# --- Optimization directions ---
+:HigherIsBetter a :OptimizationDirection ; rdfs:label "higher is better" .
+:LowerIsBetter  a :OptimizationDirection ; rdfs:label "lower is better" .
+
+# --- Metrics ---
+:Accuracy         a :Metric ; rdfs:label "Accuracy"          ; :optimizationDirection :HigherIsBetter .
+:F1               a :Metric ; rdfs:label "F1 score"          ; :optimizationDirection :HigherIsBetter .
+:AUC              a :Metric ; rdfs:label "ROC AUC"           ; :optimizationDirection :HigherIsBetter .
+:Precision        a :Metric ; rdfs:label "Precision"         ; :optimizationDirection :HigherIsBetter .
+:Recall           a :Metric ; rdfs:label "Recall"            ; :optimizationDirection :HigherIsBetter .
+:LogLoss          a :Metric ; rdfs:label "Log loss"          ; :optimizationDirection :LowerIsBetter .
+:RMSE             a :Metric ; rdfs:label "RMSE"              ; :optimizationDirection :LowerIsBetter .
+:InferenceLatency a :Metric ; rdfs:label "Inference latency" ; :optimizationDirection :LowerIsBetter .
+
+# --- Condition types (starter set; add individuals as new types emerge) ---
+:LabelNoise        a :ConditionType ; rdfs:label "label noise" .
+:NumRowsCond       a :ConditionType ; rdfs:label "number of rows" .
+:NumFeaturesCond   a :ConditionType ; rdfs:label "number of features" .
+:ClassImbalance    a :ConditionType ; rdfs:label "class imbalance ratio" .
+:FeatureTypes      a :ConditionType ; rdfs:label "feature types" .
+:DistributionShift a :ConditionType ; rdfs:label "distribution shift" .
+:HyperparamTuning  a :ConditionType ; rdfs:label "hyperparameter tuning regime" .
+
+# --- Method families (nestable) ---
+:TreeEnsemble        a :MethodFamily ; rdfs:label "Tree ensemble" .
+:GradientBoostedTrees a :MethodFamily ; rdfs:label "Gradient-boosted trees" ; :subFamilyOf :TreeEnsemble .
+:LinearModel         a :MethodFamily ; rdfs:label "Linear model" .
+:NeuralNetwork       a :MethodFamily ; rdfs:label "Neural network" .
+:SVM                 a :MethodFamily ; rdfs:label "Support vector machine" .
+:NearestNeighbors    a :MethodFamily ; rdfs:label "Nearest neighbors" .
+
+# --- Canonical methods (reference, for name normalization; extend as needed) ---
+:RandomForest       a :Method ; rdfs:label "Random Forest"        ; :inFamily :TreeEnsemble .
+:ExtraTrees         a :Method ; rdfs:label "Extra Trees"          ; :inFamily :TreeEnsemble .
+:XGBoost            a :Method ; rdfs:label "XGBoost"              ; :inFamily :GradientBoostedTrees .
+:LightGBM           a :Method ; rdfs:label "LightGBM"            ; :inFamily :GradientBoostedTrees .
+:CatBoost           a :Method ; rdfs:label "CatBoost"            ; :inFamily :GradientBoostedTrees .
+:LogisticRegression a :Method ; rdfs:label "Logistic Regression" ; :inFamily :LinearModel .
