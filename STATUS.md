@@ -7,12 +7,12 @@
 ---
 
 ## Where we are
-**Phase:** 0 (Skeleton & ontology) — ontology written and validated; Fuseki not yet stood up.
-**Date of last update:** (fill in)
+**Phase:** 0 CLOSED → ready for Phase 1
+**Date of last update:** 2026-06-17
 
-Design locked (RDF/SPARQL, BenchmarkResult-as-atom). The Turtle ontology exists as
-`ontology/mlkg.ttl` and is validated (parses to 289 triples; flagship comparison query runs and
-reproduces the README's RF-vs-XGBoost example). Documented in `docs/ONTOLOGY.md`. No backend code yet.
+Design locked (RDF/SPARQL, BenchmarkResult-as-atom). Fuseki is running in Docker at
+`http://localhost:3030`. Dataset `mlkg` (persistent TDB2) created and ontology loaded.
+Smoke query returned 8 metric rows — Phase 0 slice is fully closed.
 
 ## Done
 - [x] Vision (README), DESIGN, DECISIONS, CLAUDE continuity kit.
@@ -20,15 +20,17 @@ reproduces the README's RF-vs-XGBoost example). Documented in `docs/ONTOLOGY.md`
 - [x] **Turtle ontology `ontology/mlkg.ttl` written + validated.** Five refinements over the sketch:
       metric direction, numeric/text condition values, controlled-vocab condition types,
       functional-core cardinality, conditionsComplete flag. Documented in `docs/ONTOLOGY.md`.
+- [x] **Phase 0 slice CLOSED.** Fuseki up (Docker, `stain/jena-fuseki:latest`), dataset `mlkg`
+      created (TDB2), ontology loaded, smoke SPARQL query returned 8 metric rows live.
+      `.env` created with random FUSEKI_ADMIN_PASSWORD.
 
 ## In progress
-- [ ] Stand up Apache Jena Fuseki locally; load `ontology/mlkg.ttl`.
+_(nothing)_
 
 ## Next actions (in order)
-1. Run Fuseki (Docker is simplest), create dataset `mlkg`, load `ontology/mlkg.ttl`.
-2. Run a trivial SPARQL query against Fuseki's endpoint to close the **Phase 0 slice**.
-3. Hand-enter ONE real paper's results as instance triples; run the flagship comparison query
-   against the live endpoint (Phase 1 slice).
+1. Choose seed paper for Phase 1 (RF/XGBoost-under-noise tabular study fits best).
+2. Hand-enter ONE real paper's results as instance triples (`.ttl` file under `data/`, human-reviewed).
+3. Run the flagship comparison query against the live Fuseki endpoint to close the Phase 1 slice.
 
 ## Open questions / parking lot
 - Which seed paper for Phase 1? (an RF/XGBoost-under-noise tabular study fits the example best)
