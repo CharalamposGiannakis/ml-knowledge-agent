@@ -16,7 +16,7 @@ table/figure, page). If the graph lacks the answer, it says so. No fabrication.
 3. **Always-working-slice.** Never leave the repo in a state with no runnable end-to-end path.
    Prefer a thin slice over broad half-built infra.
 4. **Source of truth is `docs/DESIGN.md`.** If you change architecture, update DESIGN.md and add an
-   ADR to `docs/DECISIONS.md` in the same change.
+   ADR to `docs/DECISIONS.md` in the same change. The schema's source of truth is `ontology/mlkg.ttl`.
 5. **Required core fields** for any result: method, dataset, metric, value, source. Conditions are
    accept-and-flag if partial — never silently drop them, never hard-reject for being incomplete.
 
@@ -30,6 +30,19 @@ table/figure, page). If the graph lacks the answer, it says so. No fabrication.
 - Each session: update `STATUS.md` (Done / In progress / Next actions) before stopping.
 
 ## How to run
-- Fuseki: (fill in once Phase 0 is set up)
-- Backend: (fill in)
-- Frontend: (fill in)
+Prereqs: Docker + Docker Compose. (No host Java needed — the image bundles it.)
+
+    cp .env.example .env        # set FUSEKI_ADMIN_PASSWORD
+    make up                     # start Fuseki at http://localhost:3030
+    make init                   # create dataset 'mlkg', load ontology, run smoke query
+    make query < some.rq        # run an ad-hoc SPARQL SELECT
+
+- Fuseki UI:        http://localhost:3030  (user: admin, pw: from .env)
+- Query endpoint:   http://localhost:3030/mlkg/query
+- Update endpoint:  http://localhost:3030/mlkg/update
+- GSP data load:    POST text/turtle to http://localhost:3030/mlkg/data?default
+- Data persists in the `fuseki-data` volume. `make reset` wipes it.
+
+If `make up` fails on the image tag, verify a current tag on Docker Hub (Jena is on 5.x) and
+update `docker-compose.yml`. The scripts talk to Fuseki over standard HTTP, so they are
+image-agnostic once the server is reachable.
