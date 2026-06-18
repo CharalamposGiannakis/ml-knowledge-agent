@@ -194,3 +194,27 @@ and deferred until after Phase 1.""" .
 :LightGBM           a :Method ; rdfs:label "LightGBM"            ; :inFamily :GradientBoostedTrees .
 :CatBoost           a :Method ; rdfs:label "CatBoost"            ; :inFamily :GradientBoostedTrees .
 :LogisticRegression a :Method ; rdfs:label "Logistic Regression" ; :inFamily :LinearModel .
+
+#################################################################
+#  Vocabulary added in Phase 1 (Shwartz-Ziv 2022 ingestion)
+#################################################################
+
+# --- New properties ---
+:stdError a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:label "standard error" ; rdfs:domain :BenchmarkResult ; rdfs:range xsd:decimal ;
+    rdfs:comment "Standard error of the mean for the reported value, when given." .
+:numClasses a owl:DatatypeProperty ;
+    rdfs:label "num classes" ; rdfs:domain :Dataset ; rdfs:range xsd:integer .
+
+# --- New metrics (both lower-is-better) ---
+:MSE a :Metric ; rdfs:label "Mean squared error" ; :optimizationDirection :LowerIsBetter .
+:CrossEntropyLoss a :Metric ; rdfs:label "Cross-entropy loss" ; :optimizationDirection :LowerIsBetter ;
+    rdfs:comment "Some papers report this with a scaling factor (e.g. 100x); check the source." .
+
+# --- Deep tabular methods (grouped loosely under NeuralNetwork) ---
+:NODE   a :Method ; rdfs:label "NODE" ; :inFamily :NeuralNetwork ;
+    rdfs:comment "Neural Oblivious Decision Ensembles (differentiable trees)." .
+:TabNet a :Method ; rdfs:label "TabNet" ; :inFamily :NeuralNetwork ;
+    rdfs:comment "Attention-based deep tabular model." .
+:DNFNet a :Method ; rdfs:label "DNF-Net" ; :inFamily :NeuralNetwork .
+:OneDCNN a :Method ; rdfs:label "1D-CNN" ; :inFamily :NeuralNetwork .

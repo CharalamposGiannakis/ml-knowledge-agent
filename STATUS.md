@@ -7,37 +7,39 @@
 ---
 
 ## Where we are
-**Phase:** 0 CLOSED → ready for Phase 1
-**Date of last update:** 2026-06-17
+**Phase:** 1 CLOSED — moving to Phase 2 planning.
+**Date of last update:** 2026-06-18
 
-Design locked (RDF/SPARQL, BenchmarkResult-as-atom). Fuseki is running in Docker at
-`http://localhost:3030`. Dataset `mlkg` (persistent TDB2) created and ontology loaded.
-Smoke query returned 8 metric rows — Phase 0 slice is fully closed.
+Seed paper fully loaded live. `data/shwartzziv2022.ttl` (Table 2, 6 datasets, 48 BenchmarkResults)
+POSTed into Fuseki; live count confirmed = 48. Gesture cross-entropy ranking query verified against
+the live endpoint: Deep Ensemble w/ XGBoost (78.93) ranks 1st, XGBoost (80.64) 2nd, both citing
+"Table 2" p.6 of Shwartz-Ziv & Armon 2022. All source provenance resolves correctly.
 
 ## Done
-- [x] Vision (README), DESIGN, DECISIONS, CLAUDE continuity kit.
-- [x] Decisions: RDF/SPARQL (ADR-001), result-as-atom (ADR-002), partial conditions (ADR-003).
-- [x] **Turtle ontology `ontology/mlkg.ttl` written + validated.** Five refinements over the sketch:
-      metric direction, numeric/text condition values, controlled-vocab condition types,
-      functional-core cardinality, conditionsComplete flag. Documented in `docs/ONTOLOGY.md`.
-- [x] **Phase 0 slice CLOSED.** Fuseki up (Docker, `stain/jena-fuseki:latest`), dataset `mlkg`
-      created (TDB2), ontology loaded, smoke SPARQL query returned 8 metric rows live.
-      `.env` created with random FUSEKI_ADMIN_PASSWORD.
-
-## In progress
-_(nothing)_
+- [x] Continuity kit + decisions (ADR-001..007).
+- [x] Ontology `ontology/mlkg.ttl` written, validated, and extended for Phase 1 vocab.
+- [x] Phase 0 setup bundle (docker-compose, init_fuseki.sh, Makefile, query.py).
+- [x] Seed paper ingested offline: `data/shwartzziv2022.ttl` (Table 2, 48 BenchmarkResults,
+      values + stdError, dataset characteristics). All flagged :conditionsComplete false.
+- [x] First eval pairs in `eval/eval_set.jsonl`.
+- [x] Phase 0 live: Fuseki up, ontology loaded (10 metrics; smoke query passed).
+- [x] Phase 1 live: `data/shwartzziv2022.ttl` loaded (48 BenchmarkResults confirmed); Gesture
+      cross-entropy ranking query verified — Deep Ensemble w/ XGBoost (78.93) 1st, XGBoost
+      (80.64) 2nd, both sourced to Table 2 p.6.
 
 ## Next actions (in order)
-1. Choose seed paper for Phase 1 (RF/XGBoost-under-noise tabular study fits best).
-2. Hand-enter ONE real paper's results as instance triples (`.ttl` file under `data/`, human-reviewed).
-3. Run the flagship comparison query against the live Fuseki endpoint to close the Phase 1 slice.
+1. Refinement pass: model the seen-vs-unseen dataset condition (flip :conditionsComplete where done).
+2. Optionally extend to Table 2's other 5 datasets (note: YearPrediction = MSE, others cross-entropy).
+3. Phase 2 planning: extraction pipeline (PyMuPDF + LLM) — see EXTRACTION_NOTES.
 
 ## Open questions / parking lot
-- Which seed paper for Phase 1? (an RF/XGBoost-under-noise tabular study fits the example best)
-- Dataset-characteristic vs condition overlap (rule of thumb noted in ONTOLOGY.md — watch for dupes).
-- Repo name.
+- Paper year: source PDF is arXiv:2106.03253v2 (Nov 2021); :year set to 2022 (Information Fusion). Confirm.
+- Dataset dedup: Higgs/CoverType etc. will recur in later papers — promote datasets to a shared
+  reference file then, and decide how to handle per-paper characteristic differences (size/split).
+- Should source PDFs be committed at all? (copyright/size — recommend gitignoring `pdfs/`).
 
 ## Known issues / risks
-- Empty-cathedral risk — mitigated by always-working-slice (ADR-007).
-- Extraction quality is the real engineering risk; budget time there, not on ontology polish.
-- OWL restrictions document but do not enforce required-core; SHACL enforcement deferred to Phase 2+.
+- Conditions not yet modeled for this paper (seen/unseen) — honestly flagged, not closed.
+- Cross-entropy values carry a 100x factor (Table 2 caption); stored as printed, factor cancels
+  within-table. Watch when comparing across papers.
+- OWL restrictions document but don't enforce required-core; SHACL deferred to Phase 2+.

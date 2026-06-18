@@ -32,17 +32,19 @@ table/figure, page). If the graph lacks the answer, it says so. No fabrication.
 ## How to run
 Prereqs: Docker + Docker Compose. (No host Java needed — the image bundles it.)
 
-    cp .env.example .env        # set FUSEKI_ADMIN_PASSWORD
-    make up                     # start Fuseki at http://localhost:3030
-    make init                   # create dataset 'mlkg', load ontology, run smoke query
-    make query < some.rq        # run an ad-hoc SPARQL SELECT
+    cp .env.example .env                              # set FUSEKI_ADMIN_PASSWORD (once)
+    source .env                                       # export vars into current shell
+    docker compose up -d                              # start Fuseki at http://localhost:3030
+    bash scripts/init_fuseki.sh                       # create dataset 'mlkg', load ontology, smoke query
+    bash scripts/load_data.sh data/<reviewed>.ttl     # load a reviewed .ttl (repeat per file)
+    python3 scripts/query.py < some.rq                # run an ad-hoc SPARQL SELECT
 
 - Fuseki UI:        http://localhost:3030  (user: admin, pw: from .env)
 - Query endpoint:   http://localhost:3030/mlkg/query
 - Update endpoint:  http://localhost:3030/mlkg/update
 - GSP data load:    POST text/turtle to http://localhost:3030/mlkg/data?default
-- Data persists in the `fuseki-data` volume. `make reset` wipes it.
+- Data persists in the `fuseki-data` volume. `docker compose down -v` wipes it.
 
-If `make up` fails on the image tag, verify a current tag on Docker Hub (Jena is on 5.x) and
-update `docker-compose.yml`. The scripts talk to Fuseki over standard HTTP, so they are
+If `docker compose up` fails on the image tag, verify a current tag on Docker Hub (Jena is on 5.x)
+and update `docker-compose.yml`. The scripts talk to Fuseki over standard HTTP, so they are
 image-agnostic once the server is reachable.

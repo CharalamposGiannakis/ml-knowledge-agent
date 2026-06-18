@@ -1,0 +1,149 @@
+@prefix :    <http://mlkg.local/ontology#> .
+@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# =============================================================================
+# REVIEWED DATA — Shwartz-Ziv & Armon, "Tabular Data: Deep Learning is Not All
+# You Need", Table 2 (first 6 of 11 datasets). Hand-reviewed from the source PDF.
+#
+# NOTE ON CONDITIONS (ADR-003): the paper's central experimental condition is
+# whether each dataset was SEEN (in a deep model's own paper) or UNSEEN. That is
+# per (model,dataset) and is NOT yet modeled here, so every result below is
+# flagged :conditionsComplete false. The agent must caveat accordingly. It will
+# be added in a refinement pass.
+#
+# NOTE ON METRIC SCALING: cross-entropy values carry a 100x factor (per the
+# Table 2 caption). Stored as printed; the factor cancels in within-table
+# comparisons. Rossmann uses MSE, not cross-entropy.
+# =============================================================================
+
+# --- Paper + source location ---
+:paper_sz2022 a :Paper ;
+    :title "Tabular Data: Deep Learning is Not All You Need" ;
+    :author "Ravid Shwartz-Ziv" , "Amitai Armon" ;
+    :year 2022 ;                      # Information Fusion (journal) version; source PDF is arXiv:2106.03253v2 (Nov 2021)
+    :doi "10.1016/j.inffus.2021.11.011" .
+
+:src_sz2022_t2 a :SourceLocation ;
+    :fromPaper :paper_sz2022 ;
+    :locator "Table 2" ;
+    :page 6 .
+
+# --- Paper-specific ensemble methods (general methods live in the ontology) ---
+:SimpleEnsemble_sz2022    a :Method ; rdfs:label "Simple Ensemble (Shwartz-Ziv 2022)" .
+:DeepEnsembleNoXGB_sz2022 a :Method ; rdfs:label "Deep Ensemble w/o XGBoost (Shwartz-Ziv 2022)" .
+:DeepEnsembleXGB_sz2022   a :Method ; rdfs:label "Deep Ensemble w/ XGBoost (Shwartz-Ziv 2022)" .
+
+
+# --- Datasets (characteristics as reported in Table 1) ---
+
+:ds_rossmann a :Dataset ; rdfs:label "Rossmann Store Sales" ; :numFeatures 10 ; :numRows 1018000 .
+
+:ds_covertype a :Dataset ; rdfs:label "Forest Cover Type" ; :numFeatures 54 ; :numRows 580000 ; :numClasses 7 .
+
+:ds_higgs a :Dataset ; rdfs:label "Higgs Boson" ; :numFeatures 30 ; :numRows 800000 ; :numClasses 2 .
+
+:ds_gas a :Dataset ; rdfs:label "Gas Concentrations" ; :numFeatures 129 ; :numRows 13900 ; :numClasses 6 .
+
+:ds_eye a :Dataset ; rdfs:label "Eye Movements" ; :numFeatures 26 ; :numRows 10900 ; :numClasses 3 .
+
+:ds_gesture a :Dataset ; rdfs:label "Gesture Phase" ; :numFeatures 32 ; :numRows 9800 ; :numClasses 5 .
+
+
+# --- BenchmarkResults (48 = 8 models x 6 datasets) ---
+
+:r_xgboost_rossmann a :BenchmarkResult ; :reportsMethod :XGBoost ; :onDataset :ds_rossmann ; :usesMetric :MSE ; :hasValue 490.18 ; :stdError 1.19 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_xgboost_covertype a :BenchmarkResult ; :reportsMethod :XGBoost ; :onDataset :ds_covertype ; :usesMetric :CrossEntropyLoss ; :hasValue 3.13 ; :stdError 0.09 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_xgboost_higgs a :BenchmarkResult ; :reportsMethod :XGBoost ; :onDataset :ds_higgs ; :usesMetric :CrossEntropyLoss ; :hasValue 21.62 ; :stdError 0.33 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_xgboost_gas a :BenchmarkResult ; :reportsMethod :XGBoost ; :onDataset :ds_gas ; :usesMetric :CrossEntropyLoss ; :hasValue 2.18 ; :stdError 0.2 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_xgboost_eye a :BenchmarkResult ; :reportsMethod :XGBoost ; :onDataset :ds_eye ; :usesMetric :CrossEntropyLoss ; :hasValue 56.07 ; :stdError 0.65 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_xgboost_gesture a :BenchmarkResult ; :reportsMethod :XGBoost ; :onDataset :ds_gesture ; :usesMetric :CrossEntropyLoss ; :hasValue 80.64 ; :stdError 0.8 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_node_rossmann a :BenchmarkResult ; :reportsMethod :NODE ; :onDataset :ds_rossmann ; :usesMetric :MSE ; :hasValue 488.59 ; :stdError 1.24 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_node_covertype a :BenchmarkResult ; :reportsMethod :NODE ; :onDataset :ds_covertype ; :usesMetric :CrossEntropyLoss ; :hasValue 4.15 ; :stdError 0.13 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_node_higgs a :BenchmarkResult ; :reportsMethod :NODE ; :onDataset :ds_higgs ; :usesMetric :CrossEntropyLoss ; :hasValue 21.19 ; :stdError 0.69 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_node_gas a :BenchmarkResult ; :reportsMethod :NODE ; :onDataset :ds_gas ; :usesMetric :CrossEntropyLoss ; :hasValue 2.17 ; :stdError 0.18 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_node_eye a :BenchmarkResult ; :reportsMethod :NODE ; :onDataset :ds_eye ; :usesMetric :CrossEntropyLoss ; :hasValue 68.35 ; :stdError 0.66 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_node_gesture a :BenchmarkResult ; :reportsMethod :NODE ; :onDataset :ds_gesture ; :usesMetric :CrossEntropyLoss ; :hasValue 92.12 ; :stdError 0.82 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_dnfnet_rossmann a :BenchmarkResult ; :reportsMethod :DNFNet ; :onDataset :ds_rossmann ; :usesMetric :MSE ; :hasValue 503.83 ; :stdError 1.41 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_dnfnet_covertype a :BenchmarkResult ; :reportsMethod :DNFNet ; :onDataset :ds_covertype ; :usesMetric :CrossEntropyLoss ; :hasValue 3.96 ; :stdError 0.11 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_dnfnet_higgs a :BenchmarkResult ; :reportsMethod :DNFNet ; :onDataset :ds_higgs ; :usesMetric :CrossEntropyLoss ; :hasValue 23.68 ; :stdError 0.83 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_dnfnet_gas a :BenchmarkResult ; :reportsMethod :DNFNet ; :onDataset :ds_gas ; :usesMetric :CrossEntropyLoss ; :hasValue 1.44 ; :stdError 0.09 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_dnfnet_eye a :BenchmarkResult ; :reportsMethod :DNFNet ; :onDataset :ds_eye ; :usesMetric :CrossEntropyLoss ; :hasValue 68.38 ; :stdError 0.65 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_dnfnet_gesture a :BenchmarkResult ; :reportsMethod :DNFNet ; :onDataset :ds_gesture ; :usesMetric :CrossEntropyLoss ; :hasValue 86.98 ; :stdError 0.74 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_tabnet_rossmann a :BenchmarkResult ; :reportsMethod :TabNet ; :onDataset :ds_rossmann ; :usesMetric :MSE ; :hasValue 485.12 ; :stdError 1.93 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_tabnet_covertype a :BenchmarkResult ; :reportsMethod :TabNet ; :onDataset :ds_covertype ; :usesMetric :CrossEntropyLoss ; :hasValue 3.01 ; :stdError 0.08 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_tabnet_higgs a :BenchmarkResult ; :reportsMethod :TabNet ; :onDataset :ds_higgs ; :usesMetric :CrossEntropyLoss ; :hasValue 21.14 ; :stdError 0.2 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_tabnet_gas a :BenchmarkResult ; :reportsMethod :TabNet ; :onDataset :ds_gas ; :usesMetric :CrossEntropyLoss ; :hasValue 1.92 ; :stdError 0.14 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_tabnet_eye a :BenchmarkResult ; :reportsMethod :TabNet ; :onDataset :ds_eye ; :usesMetric :CrossEntropyLoss ; :hasValue 67.13 ; :stdError 0.69 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_tabnet_gesture a :BenchmarkResult ; :reportsMethod :TabNet ; :onDataset :ds_gesture ; :usesMetric :CrossEntropyLoss ; :hasValue 96.42 ; :stdError 0.87 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_onedcnn_rossmann a :BenchmarkResult ; :reportsMethod :OneDCNN ; :onDataset :ds_rossmann ; :usesMetric :MSE ; :hasValue 493.81 ; :stdError 2.23 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_onedcnn_covertype a :BenchmarkResult ; :reportsMethod :OneDCNN ; :onDataset :ds_covertype ; :usesMetric :CrossEntropyLoss ; :hasValue 3.51 ; :stdError 0.13 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_onedcnn_higgs a :BenchmarkResult ; :reportsMethod :OneDCNN ; :onDataset :ds_higgs ; :usesMetric :CrossEntropyLoss ; :hasValue 22.33 ; :stdError 0.73 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_onedcnn_gas a :BenchmarkResult ; :reportsMethod :OneDCNN ; :onDataset :ds_gas ; :usesMetric :CrossEntropyLoss ; :hasValue 1.79 ; :stdError 0.19 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_onedcnn_eye a :BenchmarkResult ; :reportsMethod :OneDCNN ; :onDataset :ds_eye ; :usesMetric :CrossEntropyLoss ; :hasValue 67.9 ; :stdError 0.64 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_onedcnn_gesture a :BenchmarkResult ; :reportsMethod :OneDCNN ; :onDataset :ds_gesture ; :usesMetric :CrossEntropyLoss ; :hasValue 97.89 ; :stdError 0.82 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_simpleensemble_rossmann a :BenchmarkResult ; :reportsMethod :SimpleEnsemble_sz2022 ; :onDataset :ds_rossmann ; :usesMetric :MSE ; :hasValue 488.57 ; :stdError 2.14 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_simpleensemble_covertype a :BenchmarkResult ; :reportsMethod :SimpleEnsemble_sz2022 ; :onDataset :ds_covertype ; :usesMetric :CrossEntropyLoss ; :hasValue 3.19 ; :stdError 0.18 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_simpleensemble_higgs a :BenchmarkResult ; :reportsMethod :SimpleEnsemble_sz2022 ; :onDataset :ds_higgs ; :usesMetric :CrossEntropyLoss ; :hasValue 22.46 ; :stdError 0.38 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_simpleensemble_gas a :BenchmarkResult ; :reportsMethod :SimpleEnsemble_sz2022 ; :onDataset :ds_gas ; :usesMetric :CrossEntropyLoss ; :hasValue 2.36 ; :stdError 0.13 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_simpleensemble_eye a :BenchmarkResult ; :reportsMethod :SimpleEnsemble_sz2022 ; :onDataset :ds_eye ; :usesMetric :CrossEntropyLoss ; :hasValue 58.72 ; :stdError 0.67 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_simpleensemble_gesture a :BenchmarkResult ; :reportsMethod :SimpleEnsemble_sz2022 ; :onDataset :ds_gesture ; :usesMetric :CrossEntropyLoss ; :hasValue 89.45 ; :stdError 0.89 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_deepensemblenoxgb_rossmann a :BenchmarkResult ; :reportsMethod :DeepEnsembleNoXGB_sz2022 ; :onDataset :ds_rossmann ; :usesMetric :MSE ; :hasValue 489.94 ; :stdError 2.09 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_deepensemblenoxgb_covertype a :BenchmarkResult ; :reportsMethod :DeepEnsembleNoXGB_sz2022 ; :onDataset :ds_covertype ; :usesMetric :CrossEntropyLoss ; :hasValue 3.52 ; :stdError 0.1 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_deepensemblenoxgb_higgs a :BenchmarkResult ; :reportsMethod :DeepEnsembleNoXGB_sz2022 ; :onDataset :ds_higgs ; :usesMetric :CrossEntropyLoss ; :hasValue 22.41 ; :stdError 0.54 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_deepensemblenoxgb_gas a :BenchmarkResult ; :reportsMethod :DeepEnsembleNoXGB_sz2022 ; :onDataset :ds_gas ; :usesMetric :CrossEntropyLoss ; :hasValue 1.98 ; :stdError 0.13 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_deepensemblenoxgb_eye a :BenchmarkResult ; :reportsMethod :DeepEnsembleNoXGB_sz2022 ; :onDataset :ds_eye ; :usesMetric :CrossEntropyLoss ; :hasValue 69.28 ; :stdError 0.62 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_deepensemblenoxgb_gesture a :BenchmarkResult ; :reportsMethod :DeepEnsembleNoXGB_sz2022 ; :onDataset :ds_gesture ; :usesMetric :CrossEntropyLoss ; :hasValue 93.5 ; :stdError 0.75 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_deepensemblexgb_rossmann a :BenchmarkResult ; :reportsMethod :DeepEnsembleXGB_sz2022 ; :onDataset :ds_rossmann ; :usesMetric :MSE ; :hasValue 485.33 ; :stdError 1.29 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_deepensemblexgb_covertype a :BenchmarkResult ; :reportsMethod :DeepEnsembleXGB_sz2022 ; :onDataset :ds_covertype ; :usesMetric :CrossEntropyLoss ; :hasValue 2.99 ; :stdError 0.08 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_deepensemblexgb_higgs a :BenchmarkResult ; :reportsMethod :DeepEnsembleXGB_sz2022 ; :onDataset :ds_higgs ; :usesMetric :CrossEntropyLoss ; :hasValue 22.34 ; :stdError 0.81 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_deepensemblexgb_gas a :BenchmarkResult ; :reportsMethod :DeepEnsembleXGB_sz2022 ; :onDataset :ds_gas ; :usesMetric :CrossEntropyLoss ; :hasValue 1.69 ; :stdError 0.1 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_deepensemblexgb_eye a :BenchmarkResult ; :reportsMethod :DeepEnsembleXGB_sz2022 ; :onDataset :ds_eye ; :usesMetric :CrossEntropyLoss ; :hasValue 59.43 ; :stdError 0.6 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+:r_deepensemblexgb_gesture a :BenchmarkResult ; :reportsMethod :DeepEnsembleXGB_sz2022 ; :onDataset :ds_gesture ; :usesMetric :CrossEntropyLoss ; :hasValue 78.93 ; :stdError 0.73 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
