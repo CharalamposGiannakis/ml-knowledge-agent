@@ -28,6 +28,8 @@ Decisions logged as ADR-009 (approach) and ADR-010 (gold = the Phase-1 hand-entr
 - [x] Phase 2 plan + difficulties tracked in `docs/EXTRACTION_NOTES.md`.
 - [x] Phase 0 live: Fuseki confirmed up, ontology loaded, 10 metrics returned from live endpoint.
 - [x] Phase 1 live: data loaded (796 triples), Gesture ranking query confirmed on live endpoint.
+- [x] fix: init_fuseki.sh fails loudly on missing FUSEKI_ADMIN_PASSWORD.
+- [x] ADR-011: paper year sourcing rule (DOI → Zotero → arXiv).
 
 ## Next actions (in order)
 1. Phase 2 coding: implement pipeline stages in `docs/EXTRACTION_NOTES.md`, smallest first —

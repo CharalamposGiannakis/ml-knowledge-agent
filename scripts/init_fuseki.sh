@@ -48,7 +48,7 @@ curl -fsS -u "${ADMIN_USER}:${ADMIN_PW}" \
 echo "    loaded."
 
 echo
-echo "==> Smoke query — metrics and their optimization direction (expect 8 rows):"
+echo "==> Smoke query — metrics and their optimization direction (expect 10 rows):"
 curl -fsS "${FUSEKI_URL}/${DATASET}/query" \
   --data-urlencode 'query=PREFIX : <http://mlkg.local/ontology#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
