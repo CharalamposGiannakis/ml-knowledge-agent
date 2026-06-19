@@ -7,9 +7,8 @@
 ---
 
 ## Status & build-gate
-**Planning only.** Phase 2 *coding* is gated on the live end-to-end slice being confirmed
-(Phase 0/1 answering a real query against a running Fuseki). Planning now is cheap and
-reversible; building the pipeline before the slice is live would violate ADR-007.
+**Gate cleared.** Phase 0/1 live slice confirmed (Fuseki up, 48 results loaded, flagship
+comparison query passing). JSON schema finalised. Phase 2 implementation can begin.
 
 ## Goal (one sentence)
 PDF → a set of proposed `BenchmarkResult` records, normalized to the ontology, validated, and
@@ -56,14 +55,85 @@ Run the extractor on the Shwartz-Ziv page and **diff against `data/shwartzziv202
 hand-reviewed gold). Report per-field precision/recall: did it get the right value, the right
 metric, the right method/dataset, the right source? This is the headline interview number.
 
-## What's left / open questions
-- [ ] Verify PyMuPDF in the env supports page rendering + table-finding.
-- [ ] Confirm current Anthropic API limits for page-image / PDF input (check docs.claude.com).
-- [ ] Define the JSON record schema (fields: method, dataset, metric, value, stdError, locator,
-      page, raw_cell_text, proposed_new flags).
-- [ ] Normalization strategy: exact-match + LLM-proposed first; add embedding similarity only if needed.
-- [ ] Empirically test vision-vs-text extraction quality on the Shwartz-Ziv page (gold available).
-- [ ] Define the precision/recall scoring script for the gold diff.
+---
+
+## The JSON contract (v1) — finalised
+
+The JSON is the handoff between the vision LLM (produces it) and deterministic Python (reads it,
+writes Turtle). The LLM only has to get the JSON right; all RDF complexity lives in code.
+
+```jsonc
+{
+  "schema_version": "1.0",
+  "paper_id": "shwartzziv2022",          // key only; paper metadata lives separately (Decision 3)
+  "extracted_by": "claude-opus-4-8",      // reproducibility / provenance
+  "source": {
+    "locator": "Table 2",
+    "page": 6,
+    "caption": "Test results on tabular datasets ... (lower value is better)"
+  },
+  "table_flags": [],                       // table-level questions, e.g. caption_metric_unclear
+  "results": [
+    {
+      "method_raw":     "Deep Ensemble w/ XGBoost (Shwartz-Ziv)",
+      "method_canonical": null,            // filled by normalisation or review (ADR-013)
+      "dataset_raw":    "Gesture",
+      "dataset_canonical": null,
+      "metric_raw":     "Cross-entropy loss (x100)",
+      "metric_canonical": null,
+      "value":     78.93,
+      "std_error": 0.73,
+      "raw_cell":  "78.93 ± 0.73",         // verbatim → enables re-parse check; becomes :sourceText
+      "conditions": [                       // typed list (Decision 2); often empty in v1
+        // {"type": "split", "value_text": "seen", "value_num": null, "unit": null}
+      ],
+      "conditions_complete": false,         // ADR-003
+      "flags": [
+        {
+          "field": "method_canonical",
+          "reason": "no_alias_match",
+          "question": "‘Deep Ensemble w/ XGBoost (Shwartz-Ziv)’ matched no known method. New method, or alias/variant of an existing one?",
+          "options": ["new_method", "alias_of:<uri>", "variant_of:<uri>"],
+          "requires_human_answer": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Key rules**
+- `*_canonical` is `null` until resolved. `higher_is_better` is **not** a field — direction is on the
+  `:Metric` in the graph (ADR-013).
+- A result with any unresolved `requires_human_answer: true` flag is **not** converted to Turtle (ADR-012).
+- `value` + `std_error` are stored as printed; `raw_cell` lets code re-parse and verify them
+  (mismatch → `value_parse_mismatch` flag). Metric scaling (e.g. ×100) stays visible in `metric_raw`
+  and `source.caption`; it is a known cross-paper risk, not a per-record field.
+
+## Normalisation & flag loop (deterministic)
+
+1. **Before extraction:** SPARQL the live graph for every `:Method` / `:Dataset` / `:Metric` with its
+   `rdfs:label` and `skos:altLabel`. Inject this vocabulary into the extraction prompt (closed IE).
+2. **After extraction:** for each `*_raw`, code matches (normalised: trim/casefold) against labels +
+   altLabels. Hit → fill `*_canonical`. Miss → raise `no_alias_match`. Also run `value_parse_mismatch`,
+   `metric_not_in_vocab`, `missing_required` checks.
+3. **At review:** human answers each question. A confirmed alias is written back as `skos:altLabel` on
+   the canonical individual (auto-resolves next time); a genuinely new entity is minted. Only then does
+   the clean record convert to TTL and load.
+
+> Ontology touch needed: add `@prefix skos:` and use `skos:prefLabel`/`skos:altLabel` on the canonical
+> Method/Dataset/Metric individuals. Small, additive — hand to Claude Code.
+
+## What's left (current)
+- [x] JSON schema finalised (this section). ADR-012, ADR-013 logged.
+- [x] Normalisation strategy decided: exact-match against `rdfs:label`/`skos:altLabel`; propose-new on miss.
+- [ ] Add `skos:` prefix + `skos:prefLabel`/`skos:altLabel` to `ontology/mlkg.ttl` (additive, pre-coding).
+- [ ] Confirm PyMuPDF page rendering + `find_tables` in the env.
+- [ ] Confirm Anthropic API page-image limits.
+- [ ] Build the first vertical cut: render page → vision call → JSON → normalise-against-graph →
+      TTL emit → validate → write `proposals/<paper>.jsonl` + flag queue. No auto-commit.
+- [ ] Run extractor on the Shwartz-Ziv page; diff vs `data/shwartzziv2022.ttl` gold; report per-field
+      precision/recall (value, metric, method/dataset, source).
 
 ---
 

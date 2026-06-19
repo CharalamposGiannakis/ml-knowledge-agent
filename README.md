@@ -22,7 +22,7 @@ A concrete example:
 
 > *"For a tabular classification problem with around 5,000 rows and noisy labels, what does the literature say about Random Forest vs XGBoost?"*
 
-The system finds comparison nodes that match those conditions, ranks them, and responds with something like:
+The system finds result records that match those conditions, derives the comparison at query time, and responds with something like:
 
 > *Based on [Author et al., 2022], Table 3: Random Forest achieved 2.3% higher F1 than XGBoost on the dataset described (n=4,800, 30% label noise, 42 features). The authors note this advantage narrows when label noise drops below 15%.*
 
@@ -38,7 +38,7 @@ This is not a pipeline that ingests everything it can find. It is a curated know
 
 **Every fact has a source.** No triple enters the graph without a direct link to the paper it came from, the section or table it appeared in, and the exact conditions under which the reported result holds. The moment provenance becomes optional, the system becomes unreliable.
 
-**Conditions are not optional metadata.** The finding that Random Forest beats XGBoost is meaningless without knowing the dataset size, the feature types, the evaluation metric, and the experimental setup. The ontology schema treats conditions as required fields on every comparison record. An extraction without conditions is rejected.
+**Conditions are not optional metadata.** The finding that Random Forest beats XGBoost is meaningless without knowing the dataset size, the feature types, the evaluation metric, and the experimental setup. The ontology captures conditions whenever present; a result with partial conditions is accepted with a flag so the agent can caveat its answer, rather than being rejected outright and losing the data. See `docs/DESIGN.md` for decisions in force (ADR-003).
 
 **The agent reasons over structure, not text.** The LLM in this system is not asked to read papers and answer from memory. It is asked to translate questions into queries and to narrate structured results in plain language. The knowledge lives in the graph. The model handles language.
 
@@ -46,11 +46,12 @@ This is not a pipeline that ingests everything it can find. It is a curated know
 
 ## What Gets Extracted
 
-The knowledge graph is organized around one atomic unit: a comparison between two ML methods under specific conditions. Each comparison record captures:
+The knowledge graph is organized around one atomic unit: a **BenchmarkResult** — one method's measured value on one dataset, by one metric, under specific conditions, with a traceable source. Comparisons between methods are not stored; they are derived at query time by matching results that share the same dataset, metric, and conditions.
 
-- The two methods being compared
-- Which one performed better, and by how much
-- The metric used (accuracy, F1, AUC, inference latency, etc.)
+Each result record captures:
+
+- The method being evaluated
+- The metric and its value (including standard error when reported)
 - The dataset or dataset characteristics
 - The conditions that define when the result holds (dataset size, noise level, feature types, class imbalance, etc.)
 - The exact source: paper, year, table or figure, page

@@ -88,3 +88,43 @@ dates, especially for preprints with later journal publication. A wrong year
 corrupts provenance. Manual lookup via DOI is unambiguous.
 **Rejected.** Auto-inferring year from paper content or filename — too error-prone.
 Trusting any single secondary source without checking DOI first.
+
+### ADR-012 — Active review: the system raises questions, not lists
+**Decision.** The review step is not a passive approval queue. The pipeline classifies every decision
+as either high-confidence (auto-proposed, one-keypress approval) or ambiguous (a targeted question,
+human answer required before the record can become a triple). No ambiguous decision is resolved silently.
+The review UI has two queues: clean records and questions.
+**Why.** Passive list-approval fails exactly when the corpus is small and the ontology short — the
+human scrolls and rubber-stamps, and a wrong triple slips in. Active review inverts the cognitive load:
+unambiguous records flow through instantly; attention is spent only where a real decision exists. This
+is the ingestion philosophy made concrete.
+**Robustness note (refines the original proposal).** Question-raising is **deterministic and
+code-driven**, not based on the LLM's self-reported confidence (which is poorly calibrated). The
+guaranteed triggers are rule checks; the LLM may add questions, but it is not the safety net.
+**Concrete triggers (machine `reason` codes):** `no_alias_match` (method/dataset/metric string not
+among known labels/aliases), `value_parse_mismatch` (parsed value not reproducible from the verbatim
+cell), `metric_not_in_vocab` (also needs a direction set), `missing_required`, `caption_metric_unclear`
+(table-level), `condition_in_caption` (scope unclear).
+**Implementation consequence.** The JSON schema carries a `flags` field. A record with any unresolved
+`requires_human_answer` flag is NOT converted to Turtle.
+**Rejected.** Passive list approval (too easy to approve without thinking). Full manual entry (too slow,
+discards the value of extraction). LLM-confidence as the primary gate (unreliable).
+
+### ADR-013 — Entity identity: raw + canonical, with aliases stored in the graph
+**Decision.** Every extracted method, dataset, and metric is captured as a **raw string** plus a
+**canonical reference that starts null**. Normalisation maps raw → canonical by matching against the
+`rdfs:label` and `skos:altLabel` values already in the graph. A match auto-fills the canonical; a miss
+raises `no_alias_match`. On human resolution, the confirmed raw string is added as a `skos:altLabel` on
+the chosen canonical individual (so it auto-resolves next time), or a new individual is minted. The
+alias "lookup table" therefore **lives inside the RDF graph**, not in a side file.
+**Why.** Identity determines whether the system can answer at all — two results compare only if they
+point to the same URI, and a silent mis-mapping produces silently incomplete answers. Storing aliases as
+`skos:altLabel` keeps a single queryable source of truth, feeds the closed-IE extraction prompt directly
+(known labels + aliases are injected into it), and is more semantic-web-idiomatic than a JSON file.
+Applying the same mechanism to datasets and metrics (not just methods) closes the same hole everywhere.
+**Consequence for metric direction.** `higher_is_better` is NOT stored per result — direction is a
+property of the `:Metric` (`:optimizationDirection`). A new metric triggers a one-time human decision on
+its direction at review.
+**Rejected.** LLM canonicalising during extraction (loses the original, errors invisible until query).
+A separate `aliases.json` lookup file (second source of truth, not queryable). Per-record direction flags
+(duplicates a fact the graph owns; invites contradiction).

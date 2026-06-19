@@ -19,6 +19,34 @@ empty cathedral (gorgeous ontology, four papers in it, abandoned).
 
 ---
 
+## Ingestion philosophy
+
+Ingestion is not a pipeline to be optimised for speed. It is a deliberate knowledge-capture
+session — one paper at a time, with the human as an active participant, not a passive approver.
+
+The long-term use case: papers have to be read anyway, for study and for work. Ingestion turns that
+reading into permanent, queryable knowledge — it replaces "I read this once and half-forgot it" with
+"this is in the graph and citable forever." That value is what justifies taking the time to do it
+properly, and it is the motivation to stay on a paper's results instead of scrolling past them.
+
+**Consequences that govern every ingestion decision:**
+
+- **Speed is never a goal for ingestion. Correctness is the only goal.** If a paper takes 45 focused
+  minutes to ingest well, that is fine — it is ingested once, and every answer about it is trustworthy forever.
+- **The system must never silently resolve an ambiguous decision.** When it cannot determine method
+  identity, dataset identity, metric scope, or condition completeness with certainty, it raises a
+  specific, targeted question and waits for a human answer.
+- **Approving an unambiguous record is one keypress; resolving an ambiguous one is a deliberate choice.**
+- **Every question the system raises is an invitation to read more carefully** about what the paper
+  actually claims. The review session is part of the reading, not overhead on top of it.
+- **One wrong triple in the graph is a real problem; one paper not yet ingested is not.** Precision
+  over coverage, always. The quality bar is ~100% per paper, not X% across thousands.
+
+This principle governs everything downstream of it: the extraction prompt, the JSON schema, the
+normalisation step, the review UI, and the question-raising mechanism (see ADR-012, ADR-013).
+
+---
+
 ## The data model (the one decision everything hangs on)
 
 ### The atom is a *result*, not a *comparison*
@@ -37,47 +65,23 @@ Why result-as-atom and not comparison-as-atom:
 - It is faithful to what papers literally print (rows of results), not an author's chosen pairings.
 - The agent can compare *any* two methods sharing conditions — not only the pairs an author highlighted.
 
-### Ontology sketch (to be refined into real Turtle in `docs/ONTOLOGY.md`)
+### Ontology shape (illustrative — authoritative source is `ontology/mlkg.ttl`)
 
-```turtle
-@prefix :    <http://mlkg.local/ontology#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+> This is a **conceptual summary only**. The live schema is `ontology/mlkg.ttl`; design
+> rationale and refinements (including the five deliberate upgrades over this sketch) are in
+> `docs/ONTOLOGY.md`. Do not use this summary as a coding reference — the live ontology differs
+> in important ways (e.g. `:conditionType` is an `ObjectProperty → :ConditionType` individual,
+> conditions split into `conditionValueNum`/`conditionValueText`/`conditionUnit`, SKOS alias
+> support is added on canonical individuals).
 
-# --- Core classes ---
-:Paper           a owl:Class .
-:Method          a owl:Class .
-:MethodFamily    a owl:Class .
-:Dataset         a owl:Class .
-:Metric          a owl:Class .
-:BenchmarkResult a owl:Class .   # THE ATOM
-:Condition       a owl:Class .   # reified so conditions are queryable
-:SourceLocation  a owl:Class .   # table/figure/page within a paper
-
-# --- BenchmarkResult wiring ---
-:reportsMethod  a owl:ObjectProperty ;   rdfs:domain :BenchmarkResult ; rdfs:range :Method .
-:onDataset      a owl:ObjectProperty ;   rdfs:domain :BenchmarkResult ; rdfs:range :Dataset .
-:usesMetric     a owl:ObjectProperty ;   rdfs:domain :BenchmarkResult ; rdfs:range :Metric .
-:hasValue       a owl:DatatypeProperty ; rdfs:domain :BenchmarkResult ; rdfs:range xsd:decimal .
-:underCondition a owl:ObjectProperty ;   rdfs:domain :BenchmarkResult ; rdfs:range :Condition .
-:hasSource      a owl:ObjectProperty ;   rdfs:domain :BenchmarkResult ; rdfs:range :SourceLocation .
-
-# --- Conditions: typed + value (flexible, queryable) ---
-:conditionType  a owl:DatatypeProperty ; rdfs:domain :Condition ; rdfs:range xsd:string .  # "label_noise"
-:conditionValue a owl:DatatypeProperty ; rdfs:domain :Condition .                            # "30%" / number / range
-
-# --- Provenance ---
-:fromPaper a owl:ObjectProperty ;   rdfs:domain :SourceLocation ; rdfs:range :Paper .
-:locator   a owl:DatatypeProperty ; rdfs:domain :SourceLocation ; rdfs:range xsd:string .   # "Table 3"
-:page      a owl:DatatypeProperty ; rdfs:domain :SourceLocation ; rdfs:range xsd:integer .
-
-# --- Taxonomy + metadata ---
-:inFamily a owl:ObjectProperty ;   rdfs:domain :Method ; rdfs:range :MethodFamily .
-:title    a owl:DatatypeProperty ; rdfs:domain :Paper  ; rdfs:range xsd:string .
-:year     a owl:DatatypeProperty ; rdfs:domain :Paper  ; rdfs:range xsd:integer .
-:doi      a owl:DatatypeProperty ; rdfs:domain :Paper  ; rdfs:range xsd:string .
-```
+**Core shape:**
+- **`:BenchmarkResult`** (the atom) links `:reportsMethod`, `:onDataset`, `:usesMetric`,
+  `:hasValue`, `:hasSource` — all `owl:FunctionalProperty`.
+- **`:underCondition`** → `:Condition` nodes (typed via `:conditionType → :ConditionType`
+  individual from a controlled vocabulary; value split into numeric/text paths for range queries).
+- **`:SourceLocation`** → `:locator` (e.g. "Table 2"), `:page`, `:fromPaper → :Paper`.
+- **`:Metric`** carries `:optimizationDirection` (`:HigherIsBetter` / `:LowerIsBetter`).
+- **`:Paper`** carries `:title`, `:year`, `:doi`.
 
 ### Comparison as a query (illustrative)
 
@@ -153,7 +157,7 @@ This is the line that turns a demo into a system in an interview.
   Fuseki running, ontology loaded. *Slice: SPARQL query returns nothing, but runs.*
 - **Phase 1 — Thin vertical slice.** Hand-enter ONE paper's results as triples. Agent answers one
   real question with a real citation. *Slice: end-to-end works on 1 paper, zero pipeline.*
-- **Phase 2 — Extraction pipeline.** PyMuPDF + LLM proposes triples from a PDF (printed to console).
+- **Phase 2 — Extraction pipeline.** PyMuPDF + LLM proposes triples from a PDF; writes `proposals/<paper>.jsonl` + flag queue for review (no auto-commit).
 - **Phase 3 — Review UI.** Accept/edit/reject proposals into the graph. Log decisions.
 - **Phase 4 — Agent routing.** SPARQL vs semantic search vs both; merge; sourced answer.
 - **Phase 5 — Eval.** ~30 Q→source pairs; report retrieval + citation accuracy.
