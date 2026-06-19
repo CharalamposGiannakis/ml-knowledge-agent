@@ -7,19 +7,23 @@
 ---
 
 ## Where we are
-**Phase:** Phase 1 CLOSED. Phase 2 = JSON schema FINALISED; ready to implement the first cut.
+**Phase:** Phase 2 — real vision extraction complete; flag resolution pending.
 **Date of last update:** 2026-06-19
 
-Live slice confirmed earlier (Fuseki up, ontology + 48 results live, Gesture query answered with
-"Table 2, p.6" citations). Phase 2 design now locked: vision extraction -> strict JSON -> deterministic
-TTL -> validate -> review queue. The JSON contract is finalised in `docs/EXTRACTION_NOTES.md`.
+Real extraction ran end-to-end: stop_reason=end_turn, 12,562 output tokens (16,384 limit).
+88 results extracted (8 methods x 11 datasets: 6 seen + 5 unseen). All 88 flagged (0 clean).
+Previous run was truncated at 8,192 max_tokens; fixed by raising to 16,384 + compact JSON prompt.
 
-Ingestion reframed as a deliberate knowledge-capture ritual (DESIGN "Ingestion philosophy"): speed is
-never the goal, correctness is; ~100% per paper; the system raises targeted questions instead of asking
-for passive list-approval. Logged as ADR-012 (active review) and ADR-013 (entity identity via raw +
-canonical, aliases as skos:altLabel in the graph). Four refinements applied over the draft schema:
-identity generalised to method/dataset/metric; aliases live in the graph (not a JSON file); flags are
-code-driven (not LLM self-confidence); higher_is_better dropped (direction lives on the :Metric).
+Flag breakdown:
+  no_alias_match:      121  (all 11 datasets unresolved; 3 method variants unresolved)
+  metric_not_in_vocab:  72  (all "cross-entropy loss x100" cells; MSE cells resolve fine)
+
+Value spot-check (8 gold pairs): 7/8 match gold exactly. Note: 2 "failures" are false misses --
+the spot-check substring-matches "xgboost" inside "Deep Ensemble w/ XGBoost", so the Deep Ensemble
+rows are being compared to the wrong gold value. Actual extracted values (78.93 and 93.50) are correct.
+
+Graph state: 926 triples (ontology + SKOS + data), 48 BenchmarkResults. .env gitignored.
+DO NOT load proposals to Fuseki automatically -- only load after flag resolution + human review.
 
 ## Done
 - [x] Continuity kit + decisions (ADR-001..013).
@@ -27,16 +31,25 @@ code-driven (not LLM self-confidence); higher_is_better dropped (direction lives
 - [x] Phase 0/1 live slice closed (Fuseki + ontology + 48 results + sourced Gesture query).
 - [x] Phase 2 plan + tracked difficulties in `docs/EXTRACTION_NOTES.md`.
 - [x] Phase 2 JSON contract finalised; ingestion philosophy + ADR-012/013 written.
+- [x] SKOS aliases added to `ontology/mlkg.ttl`; reloaded into Fuseki.
+- [x] Phase 2 first cut built (`scripts/phase2_extract.py`); pipeline validated end-to-end via mock.
+- [x] Gold-diff scorer built (`scripts/eval_extraction.py`); smoke-tested against mock proposals.
+- [x] Real vision extraction complete: 88 records, no truncation, proposals/shwartzziv2022.jsonl updated.
 
 ## Next actions (in order)
-1. Ontology touch: add `skos:` prefix + `skos:prefLabel`/`skos:altLabel` on canonical Method/Dataset/Metric
-   individuals in `ontology/mlkg.ttl` (Claude Code, additive change).
-   *(Alias strategy is settled by ADR-013: aliases live in the graph as `skos:altLabel`, not a JSON file.
-   Reversing this would require a new ADR.)*
-2. Build the first vertical cut (Claude Code): render page → vision call → JSON → normalise-against-graph
-   → TTL emit → validate → `proposals/<paper>.jsonl` + flag queue. No auto-commit.
-3. Run extractor on the Shwartz-Ziv page; diff vs `data/shwartzziv2022.ttl` gold; report precision/recall.
-4. (Deferred) model seen/unseen condition; extend to Table 2's other 5 datasets.
+1. Resolve flags -- add `skos:altLabel` to `ontology/mlkg.ttl` for:
+   Datasets: "Rossman" -> `:ds_rossmann`, "CoverType" -> `:ds_covertype`, "Higgs" -> `:ds_higgs`,
+             "Gas" -> `:ds_gas`, "Eye" -> `:ds_eye`, "Gesture" -> `:ds_gesture`,
+             "YearPrediction", "MSLR", "Epsilon", "Shrutime", "Blastchar" (5 unseen -- new entities or aliases)
+   Methods:  "Simple Ensemble" -> `:SimpleEnsemble_sz2022`,
+             "Deep Ensemble w/o XGBoost" -> `:DeepEnsemble_noXGB_sz2022`,
+             "Deep Ensemble w XGBoost" -> `:DeepEnsemble_XGB_sz2022`
+   Metric:   "cross-entropy loss x100" -> `:CrossEntropyLoss` (via altLabel; strip ×100 later)
+   Reload ontology into Fuseki after changes: see CLAUDE.md GSP endpoint.
+2. Re-run extraction after alias resolution:
+   `python scripts/phase2_extract.py`
+   Then score: `python scripts/eval_extraction.py proposals/shwartzziv2022.jsonl`
+3. (Deferred) model seen/unseen condition; fix spot-check false-miss for Deep Ensemble names.
 
 ## Open questions / parking lot
 - Verify PyMuPDF render/find_tables + Anthropic API page-image limits before coding.

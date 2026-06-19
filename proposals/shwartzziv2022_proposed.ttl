@@ -1,0 +1,16 @@
+@prefix :     <http://mlkg.local/ontology#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+# Proposed triples — shwartzziv2022 · Table 2 · p.6
+# Extracted: 2026-06-19T23:03:51
+# Model: claude-opus-4-8
+# !! REVIEW REQUIRED before loading to Fuseki (CLAUDE.md rule 1) !!
+
+# Source location (idempotent if already in graph)
+:src_sz2022_t2 a :SourceLocation ;
+    :fromPaper :paper_sz2022 ;
+    :locator "Table 2" ;
+    :page 6 .
+
+# No clean records — all results carry unresolved flags.

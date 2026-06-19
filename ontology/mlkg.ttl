@@ -2,6 +2,7 @@
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
 #################################################################
@@ -218,3 +219,35 @@ and deferred until after Phase 1.""" .
     rdfs:comment "Attention-based deep tabular model." .
 :DNFNet a :Method ; rdfs:label "DNF-Net" ; :inFamily :NeuralNetwork .
 :OneDCNN a :Method ; rdfs:label "1D-CNN" ; :inFamily :NeuralNetwork .
+
+#################################################################
+#  SKOS alias vocabulary — added Phase 2
+#  skos:prefLabel = canonical display name (mirrors rdfs:label).
+#  skos:altLabel  = alternative strings the normaliser will match.
+#  Datasets are not listed here; they live in data files as
+#  reviewed instances and pick up altLabels during review (ADR-013).
+#################################################################
+
+# Methods
+:RandomForest        skos:prefLabel "Random Forest"       ; skos:altLabel "RF" .
+:ExtraTrees          skos:prefLabel "Extra Trees" .
+:XGBoost             skos:prefLabel "XGBoost"             ; skos:altLabel "XGB" .
+:LightGBM            skos:prefLabel "LightGBM" .
+:CatBoost            skos:prefLabel "CatBoost" .
+:LogisticRegression  skos:prefLabel "Logistic Regression" ; skos:altLabel "Logistic Reg" ; skos:altLabel "LR" .
+:NODE                skos:prefLabel "NODE" .
+:TabNet              skos:prefLabel "TabNet" .
+:DNFNet              skos:prefLabel "DNF-Net"             ; skos:altLabel "DNFNet" .
+:OneDCNN             skos:prefLabel "1D-CNN"              ; skos:altLabel "1DCNN" .
+
+# Metrics
+:Accuracy         skos:prefLabel "Accuracy"          ; skos:altLabel "Acc" .
+:F1               skos:prefLabel "F1 score"          ; skos:altLabel "F1" .
+:AUC              skos:prefLabel "ROC AUC"           ; skos:altLabel "AUC" .
+:Precision        skos:prefLabel "Precision" .
+:Recall           skos:prefLabel "Recall" .
+:LogLoss          skos:prefLabel "Log loss"          ; skos:altLabel "Log Loss" .
+:RMSE             skos:prefLabel "RMSE" .
+:InferenceLatency skos:prefLabel "Inference latency" ; skos:altLabel "Latency" .
+:MSE              skos:prefLabel "Mean squared error" ; skos:altLabel "MSE" ; skos:altLabel "mse" .
+:CrossEntropyLoss skos:prefLabel "Cross-entropy loss" ; skos:altLabel "CE loss" ; skos:altLabel "cross entropy" ; skos:altLabel "Cross Entropy" .

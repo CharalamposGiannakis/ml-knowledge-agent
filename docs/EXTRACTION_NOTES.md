@@ -127,13 +127,16 @@ writes Turtle). The LLM only has to get the JSON right; all RDF complexity lives
 ## What's left (current)
 - [x] JSON schema finalised (this section). ADR-012, ADR-013 logged.
 - [x] Normalisation strategy decided: exact-match against `rdfs:label`/`skos:altLabel`; propose-new on miss.
-- [ ] Add `skos:` prefix + `skos:prefLabel`/`skos:altLabel` to `ontology/mlkg.ttl` (additive, pre-coding).
-- [ ] Confirm PyMuPDF page rendering + `find_tables` in the env.
-- [ ] Confirm Anthropic API page-image limits.
-- [ ] Build the first vertical cut: render page → vision call → JSON → normalise-against-graph →
-      TTL emit → validate → write `proposals/<paper>.jsonl` + flag queue. No auto-commit.
-- [ ] Run extractor on the Shwartz-Ziv page; diff vs `data/shwartzziv2022.ttl` gold; report per-field
-      precision/recall (value, metric, method/dataset, source).
+- [x] Added `skos:` prefix + `skos:prefLabel`/`skos:altLabel` to `ontology/mlkg.ttl`; reloaded into Fuseki.
+- [x] PyMuPDF confirmed: page 6 renders to 1700×2200px PNG at 200 DPI.
+- [x] First vertical cut built (`scripts/phase2_extract.py`): render → [vision call] → JSON →
+      normalise-against-graph → TTL emit → rdflib validate → `proposals/<paper>.jsonl` + flag queue.
+      Mock run (--mock-llm) confirmed all stages 1,2,4,5,6 work end-to-end.
+      Mock result: 48 results, 8/8 spot values match gold exactly; flags fire as expected.
+- [ ] Add `ANTHROPIC_API_KEY` to `.env` and run without `--mock-llm` (stage 3 — actual vision call).
+- [ ] Confirm Anthropic API page-image size limits (471KB image is well within expected range).
+- [ ] Run extractor on the Shwartz-Ziv page vs real model output; diff vs `data/shwartzziv2022.ttl`
+      gold; report per-field precision/recall (value, metric, method/dataset, source).
 
 ---
 
