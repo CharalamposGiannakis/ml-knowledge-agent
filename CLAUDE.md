@@ -3,6 +3,15 @@
 > Read this before doing anything in this repo. The full reasoning lives in `docs/DESIGN.md`
 > and `docs/DECISIONS.md`; this file is the short operational version.
 
+## GIT DISCIPLINE — standing rule, applies to every session
+
+- **Never run `git commit`, `git push`, or `git add && git commit`.**
+- After making changes, STOP and report:
+  1. Exact list of files created / modified / deleted.
+  2. Short summary of what changed and why.
+  3. A proposed commit message (conventional-commit style).
+- The human reviews and commits. Do not proceed further until given the go-ahead.
+
 ## What this project is
 A personal ML-Engineering research agent over a curated **RDF/SPARQL knowledge graph**. You ask a
 natural-language question; the agent queries the graph and answers with an exact source (paper,

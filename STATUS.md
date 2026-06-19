@@ -7,27 +7,24 @@
 ---
 
 ## Where we are
-**Phase:** Phase 2 complete — all 88 results extracted cleanly; proposals ready for Fuseki load.
+**Phase:** Phase 2 closed — 88 BenchmarkResults live in Fuseki under deterministic IRI scheme.
 **Date of last update:** 2026-06-20
 
-Flag resolution is done. All aliases added (6 seen datasets, 5 new unseen datasets minted in
-data/shwartzziv2022.ttl, 3 ensemble method altLabels, metric scale-stripping in normaliser).
-Re-run: 88/88 clean, 0 flagged. Scorer: 100% recall on seen 48, 100% value + std_error precision.
-Spot-check: 8/8 gold pairs correct (no false failures -- now uses exact canonical URI matching).
+ADR-014 decided and implemented: emit_ttl now mints IRIs as
+  :r_{paper_id}__{method_local}__{dataset_local}__{metric_local}
+Same result -> same IRI -> idempotent loads, no duplicates confirmed.
 
-IMPORTANT BEFORE LOADING -- URI scheme mismatch:
-  The proposed TTL uses :prop_* URIs; the original gold uses :r_* URIs.
-  Loading proposals/shwartzziv2022_proposed.ttl as-is would add 88 NEW
-  BenchmarkResult individuals while the original 48 remain under :r_* URIs
-  --> 136 total BenchmarkResults = 48 semantic duplicates.
-  Decision needed: load only the 40 NEW (unseen dataset) results, OR replace
-  the 48 existing ones, OR accept dual-URI representation for now.
+data/shwartzziv2022_full.ttl generated: 88 BenchmarkResults + full metadata (paper, 11 datasets,
+3 ensemble methods, SKOS aliases). data/shwartzziv2022.ttl FROZEN as eval gold (48 records).
 
-Graph state: 966 triples (ontology 356 + data 610). 48 BenchmarkResults live.
-DO NOT load proposals to Fuseki automatically -- decision on URI strategy first.
+Graph state: 1233 triples (ontology 356 + full data 877). 88 BenchmarkResults live, 0 duplicates.
+Flagship query confirmed: XGBoost/Gesture/CE = 80.64 +/- 0.80.
+
+Scorer: 48/48 gold recall, 100% P/R all fields on adjudicable pairs. 40 beyond-gold records
+correctly labelled (5 unseen datasets) and excluded from precision denominator.
 
 ## Done
-- [x] Continuity kit + decisions (ADR-001..013).
+- [x] Continuity kit + decisions (ADR-001..014).
 - [x] Ontology written, validated, extended for Phase 1 vocab; live load confirmed.
 - [x] Phase 0/1 live slice closed (Fuseki + ontology + 48 results + sourced Gesture query).
 - [x] Phase 2 plan + tracked difficulties in `docs/EXTRACTION_NOTES.md`.
@@ -40,19 +37,17 @@ DO NOT load proposals to Fuseki automatically -- decision on URI strategy first.
       metric scale-stripping (_METRIC_SCALE_RE) in normaliser.
 - [x] Re-run post-resolution: 88/88 clean, scorer 100% recall + 100% value precision on seen 48.
 - [x] Spot-check bug fixed: exact canonical URI matching (was: substring, caused false failures).
+- [x] ADR-014: deterministic IRI scheme; emit_ttl updated; data/shwartzziv2022_full.ttl generated.
+- [x] Fuseki clean-reloaded: ontology + shwartzziv2022_full.ttl only; 88 BenchmarkResults, 0 dups.
+- [x] Scorer precision fixed: 40 beyond-gold records excluded from precision denominator (100% P/R).
+- [x] GIT DISCIPLINE rule added to CLAUDE.md.
 
 ## Next actions (in order)
-1. DECISION: how to handle the URI-scheme mismatch before loading unseen results.
-   Option A (recommended): load only the 40 new records (filter by dataset not in original gold).
-   Option B: write a one-off script to emit the 40-record subset TTL from proposals JSONL,
-             then bash scripts/load_data.sh data/shwartzziv2022_unseen.ttl.
-   Option C: Accept dual-URI representation temporarily; fix in a dedup pass later.
-2. After decision: load unseen results into Fuseki; confirm BenchmarkResults = 88.
-3. Model seen/unseen conditions; extend :conditionsComplete logic.
-4. ADR for URI naming convention (extraction-proposed vs hand-reviewed).
+1. Add second paper to the corpus; run full Phase 2 pipeline (render -> vision -> normalise -> review).
+2. Model conditions properly for Shwartz-Ziv (seen/unseen split) -- :conditionsComplete is false for all 88.
+3. Build the Phase 3 query agent (SPARQL dispatch from natural language, FastAPI endpoint).
 
 ## Open questions / parking lot
-- URI scheme: :prop_* (extraction) vs :r_* (hand-reviewed) -- needs ADR.
 - Paper year (ADR-011 rule) and dataset dedup when a dataset first recurs in a new paper.
 
 ## Known issues / risks

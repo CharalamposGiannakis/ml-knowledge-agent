@@ -110,6 +110,23 @@ cell), `metric_not_in_vocab` (also needs a direction set), `missing_required`, `
 **Rejected.** Passive list approval (too easy to approve without thinking). Full manual entry (too slow,
 discards the value of extraction). LLM-confidence as the primary gate (unreliable).
 
+### ADR-014 — Deterministic IRI scheme for pipeline-emitted BenchmarkResults
+**Decision.** Change `emit_ttl` to mint IRIs from result identity rather than from raw strings.
+Template: `:r_{paper_id}__{method_local}__{dataset_local}__{metric_local}`
+where `{X}_local` = local part of the canonical URI, lowercased, non-alnum replaced with `_`.
+**Why.** Raw-string slugs (`_slug(method_raw)`) depend on how the model spells the method in a
+given run — the same result can produce different IRIs across runs, causing duplicate BenchmarkResult
+individuals in Fuseki. Canonical-URI locals are stable: same result → same IRI → idempotent load.
+**Future migration.** When conditions become part of result identity the key extends to include a
+condition hash (`__{cond_hash}`). This is a deliberate deferred migration; current results have
+`conditions_complete: false` so conditions are not yet in the key.
+**Gold file.** `data/shwartzziv2022.ttl` (48 hand-reviewed BenchmarkResults, `:r_*` scheme) is
+FROZEN as the independent eval gold. It is NOT regenerated from the pipeline.
+**Pipeline output.** All pipeline-emitted BenchmarkResults go to `data/{paper_id}_full.ttl` (with
+deterministic IRIs), never appended to the gold file.
+**Rejected.** Raw-slug URIs (`:prop_*` scheme) — not reproducible across runs. Appending to the
+gold file — conflates hand-reviewed and machine-extracted provenance.
+
 ### ADR-013 — Entity identity: raw + canonical, with aliases stored in the graph
 **Decision.** Every extracted method, dataset, and metric is captured as a **raw string** plus a
 **canonical reference that starts null**. Normalisation maps raw → canonical by matching against the

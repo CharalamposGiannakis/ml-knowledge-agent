@@ -177,8 +177,8 @@ def score(jsonl_path: Path, gold_path: Path, tol: float) -> None:
     print(f"  Matched to gold          : {n_matched}  "
           f"({_pct(n_matched, n_gold)} recall)")
     if unmatched:
-        print(f"  Resolved but not in gold : {len(unmatched)}  "
-              f"(possible hallucination or new result)")
+        print(f"  Beyond gold (new records): {len(unmatched)}  "
+              f"-- resolved but outside 6-dataset gold scope; verify against source")
 
     print(f"\nRESOLUTION RATES  (records with canonical filled / {n_proposed} proposed)")
     print(f"  method_canonical set     : {m_set:3d} / {n_proposed}  "
@@ -190,15 +190,18 @@ def score(jsonl_path: Path, gold_path: Path, tol: float) -> None:
     print(f"  fully resolved           : {n_resolved:3d} / {n_proposed}  "
           f"({_pct(n_resolved, n_proposed)})")
 
-    print(f"\nPER-FIELD PRECISION / RECALL  (matched pairs N={n_matched})")
+    beyond = len(unmatched)
+    print(f"\nPER-FIELD PRECISION / RECALL  "
+          f"(on {n_matched} gold-adjudicable matched pairs; {beyond} beyond-gold excluded from denom.)")
     print(f"  {'field':<12}  {'precision':>10}  {'recall':>8}  note")
     print(f"  {'-'*55}")
 
-    # method / dataset / metric — correct by construction of the key match
-    # Precision = matched/resolved; Recall = matched/gold
+    # method / dataset / metric — correct by construction of the key match.
+    # Precision denominator = n_matched (adjudicable pairs only); beyond-gold records
+    # are new data, not errors, so they must not inflate the false-positive count.
     for field in ("method", "dataset", "metric"):
-        p, r_ = _pr(n_matched, n_resolved, n_gold)
-        note   = "key-match field" if n_matched else "-"
+        p, r_ = _pr(n_matched, n_matched, n_gold)
+        note   = "key-match; beyond-gold excluded" if n_matched else "-"
         print(f"  {field:<12}  {p:>10}  {r_:>8}  {note}")
 
     # value

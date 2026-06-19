@@ -401,6 +401,11 @@ def _slug(text: str, maxlen: int = 22) -> str:
     return re.sub(r"_+", "_", re.sub(r"[^a-z0-9]", "_", text.lower()))[:maxlen].strip("_")
 
 
+def _canon_local(uri: str) -> str:
+    """Lowercase the local part of ':LocalName'; replace non-alnum runs with '_'."""
+    return re.sub(r"[^a-z0-9]+", "_", uri.lstrip(":").lower()).strip("_")
+
+
 def _is_clean(result: dict) -> bool:
     return not any(f["requires_human_answer"] for f in result.get("flags", []))
 
@@ -439,7 +444,10 @@ def emit_ttl(doc: dict) -> str:
         return "\n".join(lines)
 
     for r in clean:
-        uri = f":prop_{_slug(r['method_raw'])}_{_slug(r['dataset_raw'])}_{paper_id[:8]}"
+        uri = (f":r_{paper_id}"
+               f"__{_canon_local(r['method_canonical'])}"
+               f"__{_canon_local(r['dataset_canonical'])}"
+               f"__{_canon_local(r['metric_canonical'])}")
         block = [
             f"{uri} a :BenchmarkResult ;",
             f"    :reportsMethod {r['method_canonical']} ;",
