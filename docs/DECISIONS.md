@@ -77,3 +77,14 @@ page where we have gold. Revisit if vision underperforms or cost is prohibitive.
 reporting per-field precision/recall (value, metric, method/dataset, source).
 **Why.** Turns "no hallucination" into a measured number; reuses work already done; directly serves ADR-006.
 **Rejected.** Eyeballing extraction quality; building a separate labeled set from scratch.
+
+### ADR-011 — Paper year and date sourcing
+**Decision.** Publication year is resolved manually by the human in this order:
+DOI (authoritative) → Zotero → arXiv first-submission date. The agent must always
+ask for the year rather than inferring it — never auto-populate from paper text,
+filename, or model knowledge.
+**Why.** Different sources (Google Scholar, Research Rabbit, Zotero) disagree on
+dates, especially for preprints with later journal publication. A wrong year
+corrupts provenance. Manual lookup via DOI is unambiguous.
+**Rejected.** Auto-inferring year from paper content or filename — too error-prone.
+Trusting any single secondary source without checking DOI first.
