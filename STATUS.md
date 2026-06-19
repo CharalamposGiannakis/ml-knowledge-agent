@@ -7,23 +7,24 @@
 ---
 
 ## Where we are
-**Phase:** Phase 2 — real vision extraction complete; flag resolution pending.
-**Date of last update:** 2026-06-19
+**Phase:** Phase 2 complete — all 88 results extracted cleanly; proposals ready for Fuseki load.
+**Date of last update:** 2026-06-20
 
-Real extraction ran end-to-end: stop_reason=end_turn, 12,562 output tokens (16,384 limit).
-88 results extracted (8 methods x 11 datasets: 6 seen + 5 unseen). All 88 flagged (0 clean).
-Previous run was truncated at 8,192 max_tokens; fixed by raising to 16,384 + compact JSON prompt.
+Flag resolution is done. All aliases added (6 seen datasets, 5 new unseen datasets minted in
+data/shwartzziv2022.ttl, 3 ensemble method altLabels, metric scale-stripping in normaliser).
+Re-run: 88/88 clean, 0 flagged. Scorer: 100% recall on seen 48, 100% value + std_error precision.
+Spot-check: 8/8 gold pairs correct (no false failures -- now uses exact canonical URI matching).
 
-Flag breakdown:
-  no_alias_match:      121  (all 11 datasets unresolved; 3 method variants unresolved)
-  metric_not_in_vocab:  72  (all "cross-entropy loss x100" cells; MSE cells resolve fine)
+IMPORTANT BEFORE LOADING -- URI scheme mismatch:
+  The proposed TTL uses :prop_* URIs; the original gold uses :r_* URIs.
+  Loading proposals/shwartzziv2022_proposed.ttl as-is would add 88 NEW
+  BenchmarkResult individuals while the original 48 remain under :r_* URIs
+  --> 136 total BenchmarkResults = 48 semantic duplicates.
+  Decision needed: load only the 40 NEW (unseen dataset) results, OR replace
+  the 48 existing ones, OR accept dual-URI representation for now.
 
-Value spot-check (8 gold pairs): 7/8 match gold exactly. Note: 2 "failures" are false misses --
-the spot-check substring-matches "xgboost" inside "Deep Ensemble w/ XGBoost", so the Deep Ensemble
-rows are being compared to the wrong gold value. Actual extracted values (78.93 and 93.50) are correct.
-
-Graph state: 926 triples (ontology + SKOS + data), 48 BenchmarkResults. .env gitignored.
-DO NOT load proposals to Fuseki automatically -- only load after flag resolution + human review.
+Graph state: 966 triples (ontology 356 + data 610). 48 BenchmarkResults live.
+DO NOT load proposals to Fuseki automatically -- decision on URI strategy first.
 
 ## Done
 - [x] Continuity kit + decisions (ADR-001..013).
@@ -33,31 +34,28 @@ DO NOT load proposals to Fuseki automatically -- only load after flag resolution
 - [x] Phase 2 JSON contract finalised; ingestion philosophy + ADR-012/013 written.
 - [x] SKOS aliases added to `ontology/mlkg.ttl`; reloaded into Fuseki.
 - [x] Phase 2 first cut built (`scripts/phase2_extract.py`); pipeline validated end-to-end via mock.
-- [x] Gold-diff scorer built (`scripts/eval_extraction.py`); smoke-tested against mock proposals.
-- [x] Real vision extraction complete: 88 records, no truncation, proposals/shwartzziv2022.jsonl updated.
+- [x] Gold-diff scorer built (`scripts/eval_extraction.py`); smoke-tested, then run on real proposals.
+- [x] max_tokens raised to 16384 + compact JSON instruction; full 88-record extraction confirmed.
+- [x] Flag resolution: 6 seen dataset altLabels, 5 new unseen datasets minted, 3 method altLabels,
+      metric scale-stripping (_METRIC_SCALE_RE) in normaliser.
+- [x] Re-run post-resolution: 88/88 clean, scorer 100% recall + 100% value precision on seen 48.
+- [x] Spot-check bug fixed: exact canonical URI matching (was: substring, caused false failures).
 
 ## Next actions (in order)
-1. Resolve flags -- add `skos:altLabel` to `ontology/mlkg.ttl` for:
-   Datasets: "Rossman" -> `:ds_rossmann`, "CoverType" -> `:ds_covertype`, "Higgs" -> `:ds_higgs`,
-             "Gas" -> `:ds_gas`, "Eye" -> `:ds_eye`, "Gesture" -> `:ds_gesture`,
-             "YearPrediction", "MSLR", "Epsilon", "Shrutime", "Blastchar" (5 unseen -- new entities or aliases)
-   Methods:  "Simple Ensemble" -> `:SimpleEnsemble_sz2022`,
-             "Deep Ensemble w/o XGBoost" -> `:DeepEnsemble_noXGB_sz2022`,
-             "Deep Ensemble w XGBoost" -> `:DeepEnsemble_XGB_sz2022`
-   Metric:   "cross-entropy loss x100" -> `:CrossEntropyLoss` (via altLabel; strip ×100 later)
-   Reload ontology into Fuseki after changes: see CLAUDE.md GSP endpoint.
-2. Re-run extraction after alias resolution:
-   `python scripts/phase2_extract.py`
-   Then score: `python scripts/eval_extraction.py proposals/shwartzziv2022.jsonl`
-3. (Deferred) model seen/unseen condition; fix spot-check false-miss for Deep Ensemble names.
+1. DECISION: how to handle the URI-scheme mismatch before loading unseen results.
+   Option A (recommended): load only the 40 new records (filter by dataset not in original gold).
+   Option B: write a one-off script to emit the 40-record subset TTL from proposals JSONL,
+             then bash scripts/load_data.sh data/shwartzziv2022_unseen.ttl.
+   Option C: Accept dual-URI representation temporarily; fix in a dedup pass later.
+2. After decision: load unseen results into Fuseki; confirm BenchmarkResults = 88.
+3. Model seen/unseen conditions; extend :conditionsComplete logic.
+4. ADR for URI naming convention (extraction-proposed vs hand-reviewed).
 
 ## Open questions / parking lot
-- Verify PyMuPDF render/find_tables + Anthropic API page-image limits before coding.
-- Paper year (ADR-011 rule) and dataset dedup when a dataset first recurs.
+- URI scheme: :prop_* (extraction) vs :r_* (hand-reviewed) -- needs ADR.
+- Paper year (ADR-011 rule) and dataset dedup when a dataset first recurs in a new paper.
 
 ## Known issues / risks
-- Conditions still not modeled for Shwartz-Ziv (seen/unseen) — flagged :conditionsComplete false.
+- Conditions still not modeled for Shwartz-Ziv (seen/unseen) -- flagged :conditionsComplete false.
 - Cross-entropy 100x factor stored as printed (cancels within-table; preserved in caption/metric_raw).
-- Extraction quality is THE risk (vision-vs-text unproven) — validate on the gold page first.
 - OWL restrictions document but don't enforce required-core; SHACL deferred.
-

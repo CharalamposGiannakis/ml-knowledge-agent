@@ -3,7 +3,7 @@
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
 # Proposed triples — shwartzziv2022 · Table 2 · p.6
-# Extracted: 2026-06-19T23:03:51
+# Extracted: 2026-06-20T00:00:06
 # Model: claude-opus-4-8
 # !! REVIEW REQUIRED before loading to Fuseki (CLAUDE.md rule 1) !!
 
@@ -13,4 +13,882 @@
     :locator "Table 2" ;
     :page 6 .
 
-# No clean records — all results carry unresolved flags.
+:prop_xgboost_rossman_shwartzz a :BenchmarkResult ;
+    :reportsMethod :XGBoost ;
+    :onDataset     :ds_rossmann ;
+    :usesMetric    :MSE ;
+    :hasValue      490.18 ;
+    :stdError 1.19 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_xgboost_covertype_shwartzz a :BenchmarkResult ;
+    :reportsMethod :XGBoost ;
+    :onDataset     :ds_covertype ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      3.13 ;
+    :stdError 0.09 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_xgboost_higgs_shwartzz a :BenchmarkResult ;
+    :reportsMethod :XGBoost ;
+    :onDataset     :ds_higgs ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      21.62 ;
+    :stdError 0.33 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_xgboost_gas_shwartzz a :BenchmarkResult ;
+    :reportsMethod :XGBoost ;
+    :onDataset     :ds_gas ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      2.18 ;
+    :stdError 0.2 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_xgboost_eye_shwartzz a :BenchmarkResult ;
+    :reportsMethod :XGBoost ;
+    :onDataset     :ds_eye ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      56.07 ;
+    :stdError 0.65 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_xgboost_gesture_shwartzz a :BenchmarkResult ;
+    :reportsMethod :XGBoost ;
+    :onDataset     :ds_gesture ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      80.64 ;
+    :stdError 0.8 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_node_rossman_shwartzz a :BenchmarkResult ;
+    :reportsMethod :NODE ;
+    :onDataset     :ds_rossmann ;
+    :usesMetric    :MSE ;
+    :hasValue      488.59 ;
+    :stdError 1.24 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_node_covertype_shwartzz a :BenchmarkResult ;
+    :reportsMethod :NODE ;
+    :onDataset     :ds_covertype ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      4.15 ;
+    :stdError 0.13 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_node_higgs_shwartzz a :BenchmarkResult ;
+    :reportsMethod :NODE ;
+    :onDataset     :ds_higgs ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      21.19 ;
+    :stdError 0.69 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_node_gas_shwartzz a :BenchmarkResult ;
+    :reportsMethod :NODE ;
+    :onDataset     :ds_gas ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      2.17 ;
+    :stdError 0.18 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_node_eye_shwartzz a :BenchmarkResult ;
+    :reportsMethod :NODE ;
+    :onDataset     :ds_eye ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      68.35 ;
+    :stdError 0.66 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_node_gesture_shwartzz a :BenchmarkResult ;
+    :reportsMethod :NODE ;
+    :onDataset     :ds_gesture ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      92.12 ;
+    :stdError 0.82 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_dnf_net_rossman_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DNFNet ;
+    :onDataset     :ds_rossmann ;
+    :usesMetric    :MSE ;
+    :hasValue      503.83 ;
+    :stdError 1.41 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_dnf_net_covertype_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DNFNet ;
+    :onDataset     :ds_covertype ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      3.96 ;
+    :stdError 0.11 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_dnf_net_higgs_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DNFNet ;
+    :onDataset     :ds_higgs ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      23.68 ;
+    :stdError 0.83 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_dnf_net_gas_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DNFNet ;
+    :onDataset     :ds_gas ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      1.44 ;
+    :stdError 0.09 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_dnf_net_eye_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DNFNet ;
+    :onDataset     :ds_eye ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      68.38 ;
+    :stdError 0.65 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_dnf_net_gesture_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DNFNet ;
+    :onDataset     :ds_gesture ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      86.98 ;
+    :stdError 0.74 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_tabnet_rossman_shwartzz a :BenchmarkResult ;
+    :reportsMethod :TabNet ;
+    :onDataset     :ds_rossmann ;
+    :usesMetric    :MSE ;
+    :hasValue      485.12 ;
+    :stdError 1.93 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_tabnet_covertype_shwartzz a :BenchmarkResult ;
+    :reportsMethod :TabNet ;
+    :onDataset     :ds_covertype ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      3.01 ;
+    :stdError 0.08 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_tabnet_higgs_shwartzz a :BenchmarkResult ;
+    :reportsMethod :TabNet ;
+    :onDataset     :ds_higgs ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      21.14 ;
+    :stdError 0.2 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_tabnet_gas_shwartzz a :BenchmarkResult ;
+    :reportsMethod :TabNet ;
+    :onDataset     :ds_gas ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      1.92 ;
+    :stdError 0.14 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_tabnet_eye_shwartzz a :BenchmarkResult ;
+    :reportsMethod :TabNet ;
+    :onDataset     :ds_eye ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      67.13 ;
+    :stdError 0.69 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_tabnet_gesture_shwartzz a :BenchmarkResult ;
+    :reportsMethod :TabNet ;
+    :onDataset     :ds_gesture ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      96.42 ;
+    :stdError 0.87 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_1d_cnn_rossman_shwartzz a :BenchmarkResult ;
+    :reportsMethod :OneDCNN ;
+    :onDataset     :ds_rossmann ;
+    :usesMetric    :MSE ;
+    :hasValue      493.81 ;
+    :stdError 2.23 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_1d_cnn_covertype_shwartzz a :BenchmarkResult ;
+    :reportsMethod :OneDCNN ;
+    :onDataset     :ds_covertype ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      3.51 ;
+    :stdError 0.13 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_1d_cnn_higgs_shwartzz a :BenchmarkResult ;
+    :reportsMethod :OneDCNN ;
+    :onDataset     :ds_higgs ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      22.33 ;
+    :stdError 0.73 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_1d_cnn_gas_shwartzz a :BenchmarkResult ;
+    :reportsMethod :OneDCNN ;
+    :onDataset     :ds_gas ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      1.79 ;
+    :stdError 0.19 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_1d_cnn_eye_shwartzz a :BenchmarkResult ;
+    :reportsMethod :OneDCNN ;
+    :onDataset     :ds_eye ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      67.9 ;
+    :stdError 0.64 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_1d_cnn_gesture_shwartzz a :BenchmarkResult ;
+    :reportsMethod :OneDCNN ;
+    :onDataset     :ds_gesture ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      97.89 ;
+    :stdError 0.82 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_simple_ensemble_rossman_shwartzz a :BenchmarkResult ;
+    :reportsMethod :SimpleEnsemble_sz2022 ;
+    :onDataset     :ds_rossmann ;
+    :usesMetric    :MSE ;
+    :hasValue      488.57 ;
+    :stdError 2.14 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_simple_ensemble_covertype_shwartzz a :BenchmarkResult ;
+    :reportsMethod :SimpleEnsemble_sz2022 ;
+    :onDataset     :ds_covertype ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      3.19 ;
+    :stdError 0.18 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_simple_ensemble_higgs_shwartzz a :BenchmarkResult ;
+    :reportsMethod :SimpleEnsemble_sz2022 ;
+    :onDataset     :ds_higgs ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      22.46 ;
+    :stdError 0.38 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_simple_ensemble_gas_shwartzz a :BenchmarkResult ;
+    :reportsMethod :SimpleEnsemble_sz2022 ;
+    :onDataset     :ds_gas ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      2.36 ;
+    :stdError 0.13 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_simple_ensemble_eye_shwartzz a :BenchmarkResult ;
+    :reportsMethod :SimpleEnsemble_sz2022 ;
+    :onDataset     :ds_eye ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      58.72 ;
+    :stdError 0.67 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_simple_ensemble_gesture_shwartzz a :BenchmarkResult ;
+    :reportsMethod :SimpleEnsemble_sz2022 ;
+    :onDataset     :ds_gesture ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      89.45 ;
+    :stdError 0.89 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_o_xgbo_rossman_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleNoXGB_sz2022 ;
+    :onDataset     :ds_rossmann ;
+    :usesMetric    :MSE ;
+    :hasValue      489.94 ;
+    :stdError 2.09 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_o_xgbo_covertype_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleNoXGB_sz2022 ;
+    :onDataset     :ds_covertype ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      3.52 ;
+    :stdError 0.1 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_o_xgbo_higgs_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleNoXGB_sz2022 ;
+    :onDataset     :ds_higgs ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      22.41 ;
+    :stdError 0.54 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_o_xgbo_gas_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleNoXGB_sz2022 ;
+    :onDataset     :ds_gas ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      1.98 ;
+    :stdError 0.13 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_o_xgbo_eye_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleNoXGB_sz2022 ;
+    :onDataset     :ds_eye ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      69.28 ;
+    :stdError 0.62 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_o_xgbo_gesture_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleNoXGB_sz2022 ;
+    :onDataset     :ds_gesture ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      93.5 ;
+    :stdError 0.75 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_xgboos_rossman_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleXGB_sz2022 ;
+    :onDataset     :ds_rossmann ;
+    :usesMetric    :MSE ;
+    :hasValue      485.33 ;
+    :stdError 1.29 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_xgboos_covertype_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleXGB_sz2022 ;
+    :onDataset     :ds_covertype ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      2.99 ;
+    :stdError 0.08 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_xgboos_higgs_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleXGB_sz2022 ;
+    :onDataset     :ds_higgs ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      22.34 ;
+    :stdError 0.81 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_xgboos_gas_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleXGB_sz2022 ;
+    :onDataset     :ds_gas ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      1.69 ;
+    :stdError 0.1 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_xgboos_eye_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleXGB_sz2022 ;
+    :onDataset     :ds_eye ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      59.43 ;
+    :stdError 0.6 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_xgboos_gesture_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleXGB_sz2022 ;
+    :onDataset     :ds_gesture ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      78.93 ;
+    :stdError 0.73 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_xgboost_yearprediction_shwartzz a :BenchmarkResult ;
+    :reportsMethod :XGBoost ;
+    :onDataset     :ds_yearprediction ;
+    :usesMetric    :MSE ;
+    :hasValue      77.98 ;
+    :stdError 0.11 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_xgboost_mslr_shwartzz a :BenchmarkResult ;
+    :reportsMethod :XGBoost ;
+    :onDataset     :ds_mslr ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      55.43 ;
+    :stdError 0.02 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_xgboost_epsilon_shwartzz a :BenchmarkResult ;
+    :reportsMethod :XGBoost ;
+    :onDataset     :ds_epsilon ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      11.12 ;
+    :stdError 0.03 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_xgboost_shrutime_shwartzz a :BenchmarkResult ;
+    :reportsMethod :XGBoost ;
+    :onDataset     :ds_shrutime ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      13.82 ;
+    :stdError 0.19 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_xgboost_blastchar_shwartzz a :BenchmarkResult ;
+    :reportsMethod :XGBoost ;
+    :onDataset     :ds_blastchar ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      20.39 ;
+    :stdError 0.21 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_node_yearprediction_shwartzz a :BenchmarkResult ;
+    :reportsMethod :NODE ;
+    :onDataset     :ds_yearprediction ;
+    :usesMetric    :MSE ;
+    :hasValue      76.39 ;
+    :stdError 0.13 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_node_mslr_shwartzz a :BenchmarkResult ;
+    :reportsMethod :NODE ;
+    :onDataset     :ds_mslr ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      55.72 ;
+    :stdError 0.03 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_node_epsilon_shwartzz a :BenchmarkResult ;
+    :reportsMethod :NODE ;
+    :onDataset     :ds_epsilon ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      10.39 ;
+    :stdError 0.01 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_node_shrutime_shwartzz a :BenchmarkResult ;
+    :reportsMethod :NODE ;
+    :onDataset     :ds_shrutime ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      14.61 ;
+    :stdError 0.1 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_node_blastchar_shwartzz a :BenchmarkResult ;
+    :reportsMethod :NODE ;
+    :onDataset     :ds_blastchar ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      21.4 ;
+    :stdError 0.25 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_dnf_net_yearprediction_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DNFNet ;
+    :onDataset     :ds_yearprediction ;
+    :usesMetric    :MSE ;
+    :hasValue      81.21 ;
+    :stdError 0.18 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_dnf_net_mslr_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DNFNet ;
+    :onDataset     :ds_mslr ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      56.83 ;
+    :stdError 0.03 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_dnf_net_epsilon_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DNFNet ;
+    :onDataset     :ds_epsilon ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      12.23 ;
+    :stdError 0.04 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_dnf_net_shrutime_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DNFNet ;
+    :onDataset     :ds_shrutime ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      16.8 ;
+    :stdError 0.09 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_dnf_net_blastchar_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DNFNet ;
+    :onDataset     :ds_blastchar ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      27.91 ;
+    :stdError 0.17 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_tabnet_yearprediction_shwartzz a :BenchmarkResult ;
+    :reportsMethod :TabNet ;
+    :onDataset     :ds_yearprediction ;
+    :usesMetric    :MSE ;
+    :hasValue      83.19 ;
+    :stdError 0.19 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_tabnet_mslr_shwartzz a :BenchmarkResult ;
+    :reportsMethod :TabNet ;
+    :onDataset     :ds_mslr ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      56.04 ;
+    :stdError 0.01 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_tabnet_epsilon_shwartzz a :BenchmarkResult ;
+    :reportsMethod :TabNet ;
+    :onDataset     :ds_epsilon ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      11.92 ;
+    :stdError 0.03 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_tabnet_shrutime_shwartzz a :BenchmarkResult ;
+    :reportsMethod :TabNet ;
+    :onDataset     :ds_shrutime ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      14.94 ;
+    :stdError 0.13 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_tabnet_blastchar_shwartzz a :BenchmarkResult ;
+    :reportsMethod :TabNet ;
+    :onDataset     :ds_blastchar ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      23.72 ;
+    :stdError 0.19 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_1d_cnn_yearprediction_shwartzz a :BenchmarkResult ;
+    :reportsMethod :OneDCNN ;
+    :onDataset     :ds_yearprediction ;
+    :usesMetric    :MSE ;
+    :hasValue      78.94 ;
+    :stdError 0.14 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_1d_cnn_mslr_shwartzz a :BenchmarkResult ;
+    :reportsMethod :OneDCNN ;
+    :onDataset     :ds_mslr ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      55.97 ;
+    :stdError 0.04 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_1d_cnn_epsilon_shwartzz a :BenchmarkResult ;
+    :reportsMethod :OneDCNN ;
+    :onDataset     :ds_epsilon ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      11.08 ;
+    :stdError 0.06 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_1d_cnn_shrutime_shwartzz a :BenchmarkResult ;
+    :reportsMethod :OneDCNN ;
+    :onDataset     :ds_shrutime ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      15.31 ;
+    :stdError 0.16 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_1d_cnn_blastchar_shwartzz a :BenchmarkResult ;
+    :reportsMethod :OneDCNN ;
+    :onDataset     :ds_blastchar ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      24.68 ;
+    :stdError 0.22 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_simple_ensemble_yearprediction_shwartzz a :BenchmarkResult ;
+    :reportsMethod :SimpleEnsemble_sz2022 ;
+    :onDataset     :ds_yearprediction ;
+    :usesMetric    :MSE ;
+    :hasValue      78.01 ;
+    :stdError 0.17 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_simple_ensemble_mslr_shwartzz a :BenchmarkResult ;
+    :reportsMethod :SimpleEnsemble_sz2022 ;
+    :onDataset     :ds_mslr ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      55.46 ;
+    :stdError 0.04 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_simple_ensemble_epsilon_shwartzz a :BenchmarkResult ;
+    :reportsMethod :SimpleEnsemble_sz2022 ;
+    :onDataset     :ds_epsilon ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      11.07 ;
+    :stdError 0.04 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_simple_ensemble_shrutime_shwartzz a :BenchmarkResult ;
+    :reportsMethod :SimpleEnsemble_sz2022 ;
+    :onDataset     :ds_shrutime ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      13.61 ;
+    :stdError 0.14 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_simple_ensemble_blastchar_shwartzz a :BenchmarkResult ;
+    :reportsMethod :SimpleEnsemble_sz2022 ;
+    :onDataset     :ds_blastchar ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      21.18 ;
+    :stdError 0.17 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_o_xgbo_yearprediction_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleNoXGB_sz2022 ;
+    :onDataset     :ds_yearprediction ;
+    :usesMetric    :MSE ;
+    :hasValue      78.99 ;
+    :stdError 0.11 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_o_xgbo_mslr_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleNoXGB_sz2022 ;
+    :onDataset     :ds_mslr ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      55.59 ;
+    :stdError 0.03 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_o_xgbo_epsilon_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleNoXGB_sz2022 ;
+    :onDataset     :ds_epsilon ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      10.95 ;
+    :stdError 0.01 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_o_xgbo_shrutime_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleNoXGB_sz2022 ;
+    :onDataset     :ds_shrutime ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      14.69 ;
+    :stdError 0.11 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_o_xgbo_blastchar_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleNoXGB_sz2022 ;
+    :onDataset     :ds_blastchar ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      24.25 ;
+    :stdError 0.22 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_xgboos_yearprediction_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleXGB_sz2022 ;
+    :onDataset     :ds_yearprediction ;
+    :usesMetric    :MSE ;
+    :hasValue      76.19 ;
+    :stdError 0.21 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_xgboos_mslr_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleXGB_sz2022 ;
+    :onDataset     :ds_mslr ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      55.38 ;
+    :stdError 0.01 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_xgboos_epsilon_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleXGB_sz2022 ;
+    :onDataset     :ds_epsilon ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      11.18 ;
+    :stdError 0.01 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_xgboos_shrutime_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleXGB_sz2022 ;
+    :onDataset     :ds_shrutime ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      13.1 ;
+    :stdError 0.15 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .
+
+:prop_deep_ensemble_w_xgboos_blastchar_shwartzz a :BenchmarkResult ;
+    :reportsMethod :DeepEnsembleXGB_sz2022 ;
+    :onDataset     :ds_blastchar ;
+    :usesMetric    :CrossEntropyLoss ;
+    :hasValue      20.18 ;
+    :stdError 0.16 ;
+    :hasSource     :src_sz2022_t2 ;
+    :extractedBy   "claude-opus-4-8" ;
+    :conditionsComplete false .

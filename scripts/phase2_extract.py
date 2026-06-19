@@ -54,6 +54,13 @@ TTL_PREFIXES = """\
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 """
 
+# Strips trailing scale annotations from metric_raw before vocab lookup.
+# "cross-entropy loss ×100" → "cross-entropy loss"
+# Handles: ×100, x100, X100, (×100), [x100] with optional surrounding whitespace.
+_METRIC_SCALE_RE = re.compile(
+    r"\s*[\(\[]?\s*[×xX]\s*100\s*[\)\]]?\s*$"
+)
+
 # JSON schema template shown to the model (placeholders filled at call time)
 _SCHEMA_TEMPLATE = """\
 {
@@ -303,7 +310,10 @@ def _normalise_result(result: dict, vocab: dict) -> dict:
             })
             continue
 
-        entry = vocab.get(raw.strip().casefold())
+        # For metrics: strip trailing scale annotation before lookup so
+        # e.g. "cross-entropy loss ×100" resolves to :CrossEntropyLoss.
+        raw_lookup = _METRIC_SCALE_RE.sub("", raw).strip() if prefix == "metric" else raw
+        entry = vocab.get(raw_lookup.strip().casefold())
 
         if entry is None:
             # Metric gets a distinct reason code (also needs direction at review)
@@ -501,16 +511,19 @@ def write_proposals(doc: dict) -> tuple:
 # ── 7. summary ────────────────────────────────────────────────────────────────
 
 # Gold values from hand-reviewed data/shwartzziv2022.ttl for spot-checking.
-# Key: (method_substring, dataset_substring) both casefold.
+# Keys are (method_canonical, dataset_canonical) — exact short-URI strings
+# as returned by fetch_vocabulary / _normalise_result.  Exact matching avoids
+# the false-failure caused by substring overlap (e.g. "xgboost" in
+# "deep ensemble w/ xgboost").  Only fires when canonicals are resolved.
 _GOLD = {
-    ("xgboost",    "rossmann"): (490.18, 1.19),
-    ("xgboost",    "gesture"):  (80.64,  0.80),
-    ("node",       "gesture"):  (92.12,  0.82),
-    ("node",       "higgs"):    (21.19,  0.69),
-    ("tabnet",     "gesture"):  (96.42,  0.87),
-    ("tabnet",     "covertype"):(3.01,   0.08),
-    ("dnf",        "gas"):      (1.44,   0.09),
-    ("1d-cnn",     "eye"):      (67.90,  0.64),
+    (":XGBoost",               ":ds_rossmann"):  (490.18, 1.19),
+    (":XGBoost",               ":ds_gesture"):   (80.64,  0.80),
+    (":NODE",                  ":ds_gesture"):   (92.12,  0.82),
+    (":NODE",                  ":ds_higgs"):     (21.19,  0.69),
+    (":TabNet",                ":ds_gesture"):   (96.42,  0.87),
+    (":TabNet",                ":ds_covertype"): (3.01,   0.08),
+    (":DNFNet",                ":ds_gas"):       (1.44,   0.09),
+    (":OneDCNN",               ":ds_eye"):       (67.90,  0.64),
 }
 
 
@@ -537,30 +550,38 @@ def print_summary(doc: dict):
         for reason, n in sorted(reason_counts.items(), key=lambda x: -x[1]):
             print(f"    {reason:<28} {n:>3}")
 
-    # Spot-check extracted values against gold
+    # Spot-check extracted values against gold (canonical URI exact match).
+    # Only fires for records that have both method_canonical and dataset_canonical
+    # resolved; records with unresolved flags are skipped (not false failures).
     print("\n  Value spot-check vs gold (data/shwartzziv2022.ttl):")
-    hits = misses = checked = 0
+    hits = misses = checked = skipped_unresolved = 0
     for r in results:
-        m_cf = r.get("method_raw",  "").casefold()
-        d_cf = r.get("dataset_raw", "").casefold()
-        for (m_key, d_key), (gold_val, gold_err) in _GOLD.items():
-            if m_key in m_cf and d_key in d_cf:
-                checked += 1
-                v = r.get("value")
-                e = r.get("std_error")
-                v_ok = v is not None and abs(float(v) - gold_val) <= 0.02
-                e_ok = e is not None and abs(float(e) - gold_err) <= 0.02
-                sym  = "[OK]" if v_ok else "[!!]"
-                print(f"    [{sym}] {r['method_raw'][:30]:<30} / "
-                      f"{r['dataset_raw'][:12]:<12}  "
-                      f"val={v} (gold={gold_val}) "
-                      f"  se={e} (gold={gold_err})")
-                if v_ok:
-                    hits += 1
-                else:
-                    misses += 1
+        m_canon = r.get("method_canonical")
+        d_canon = r.get("dataset_canonical")
+        if not m_canon or not d_canon:
+            skipped_unresolved += 1
+            continue
+        key = (m_canon, d_canon)
+        if key not in _GOLD:
+            continue
+        gold_val, gold_err = _GOLD[key]
+        checked += 1
+        v = r.get("value")
+        e = r.get("std_error")
+        v_ok = v is not None and abs(float(v) - gold_val) <= 0.02
+        e_ok = e is not None and abs(float(e) - gold_err) <= 0.02
+        sym  = "[OK]" if v_ok else "[!!]"
+        print(f"    {sym} {r.get('method_raw','')[:30]:<30} / "
+              f"{r.get('dataset_raw','')[:12]:<12}  "
+              f"val={v} (gold={gold_val})  se={e} (gold={gold_err})")
+        if v_ok:
+            hits += 1
+        else:
+            misses += 1
     if checked:
         print(f"\n    Value accuracy: {hits}/{checked} spot values within 0.02 of gold")
+    if skipped_unresolved:
+        print(f"    ({skipped_unresolved} records skipped -- canonicals not yet resolved)")
 
     # Sample flagged
     if flagged:

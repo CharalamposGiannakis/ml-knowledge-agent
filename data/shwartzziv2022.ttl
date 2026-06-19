@@ -1,5 +1,6 @@
 @prefix :    <http://mlkg.local/ontology#> .
 @prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:<http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 # =============================================================================
@@ -147,3 +148,55 @@
 :r_deepensemblexgb_eye a :BenchmarkResult ; :reportsMethod :DeepEnsembleXGB_sz2022 ; :onDataset :ds_eye ; :usesMetric :CrossEntropyLoss ; :hasValue 59.43 ; :stdError 0.6 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
 
 :r_deepensemblexgb_gesture a :BenchmarkResult ; :reportsMethod :DeepEnsembleXGB_sz2022 ; :onDataset :ds_gesture ; :usesMetric :CrossEntropyLoss ; :hasValue 78.93 ; :stdError 0.73 ; :hasSource :src_sz2022_t2 ; :conditionsComplete false .
+
+# =============================================================================
+# SKOS ALIASES — Phase 2 (ADR-013)
+# skos:altLabel = short form the vision LLM copies verbatim from the table.
+# These bind the raw extracted string to the existing canonical individual.
+# =============================================================================
+
+# Dataset aliases (Table 2 column headers -> existing :Dataset individuals)
+# Note: the paper's Table 2 spells Rossmann with one 'n' ("Rossman"); both forms
+# are listed so the normaliser resolves either spelling.
+:ds_rossmann  skos:altLabel "Rossmann" ; skos:altLabel "Rossman" .
+:ds_covertype skos:altLabel "CoverType" .
+:ds_higgs     skos:altLabel "Higgs" .
+:ds_gas       skos:altLabel "Gas" .
+:ds_eye       skos:altLabel "Eye" .
+:ds_gesture   skos:altLabel "Gesture" .
+
+# Method aliases (Table 2 row headers -> existing paper-specific :Method individuals)
+:SimpleEnsemble_sz2022    skos:altLabel "Simple Ensemble" .
+:DeepEnsembleNoXGB_sz2022 skos:altLabel "Deep Ensemble w/o XGBoost" .
+:DeepEnsembleXGB_sz2022   skos:altLabel "Deep Ensemble w XGBoost" ;
+                           skos:altLabel "Deep Ensemble w/ XGBoost" .
+
+# =============================================================================
+# UNSEEN DATASETS — second half of Table 2 (characteristics from Table 1).
+# BenchmarkResults for these will be added from the Phase 2 extraction review.
+# =============================================================================
+
+:ds_yearprediction a :Dataset ;
+    rdfs:label "Year Prediction MSD" ;
+    :numFeatures 90 ; :numRows 515000 ;
+    skos:altLabel "YearPrediction" .
+
+:ds_mslr a :Dataset ;
+    rdfs:label "MSLR-WEB10K" ;
+    :numFeatures 136 ; :numClasses 5 ; :numRows 964000 ;
+    skos:altLabel "MSLR" .
+
+:ds_epsilon a :Dataset ;
+    rdfs:label "Epsilon" ;
+    :numFeatures 2000 ; :numClasses 2 ; :numRows 500000 ;
+    skos:altLabel "Epsilon" .
+
+:ds_shrutime a :Dataset ;
+    rdfs:label "Shrutime" ;
+    :numFeatures 11 ; :numClasses 2 ; :numRows 10000 ;
+    skos:altLabel "Shrutime" .
+
+:ds_blastchar a :Dataset ;
+    rdfs:label "Blastchar" ;
+    :numFeatures 20 ; :numClasses 2 ; :numRows 7000 ;
+    skos:altLabel "Blastchar" .
