@@ -7,39 +7,41 @@
 ---
 
 ## Where we are
-**Phase:** 1 CLOSED — moving to Phase 2 planning.
-**Date of last update:** 2026-06-18
+**Phase:** Phase 1 CLOSED → ready for Phase 2 coding.
+**Date of last update:** 2026-06-19
 
-Seed paper fully loaded live. `data/shwartzziv2022.ttl` (Table 2, 6 datasets, 48 BenchmarkResults)
-POSTed into Fuseki; live count confirmed = 48. Gesture cross-entropy ranking query verified against
-the live endpoint: Deep Ensemble w/ XGBoost (78.93) ranks 1st, XGBoost (80.64) 2nd, both citing
-"Table 2" p.6 of Shwartz-Ziv & Armon 2022. All source provenance resolves correctly.
+Live slice confirmed: Fuseki running, ontology loaded (10 metrics live), 48 BenchmarkResults loaded
+(796 total triples). Flagship Gesture query answered with sourced results (8 methods ranked by
+cross-entropy loss, all citing "Table 2, p. 6, Shwartz-Ziv & Armon 2022").
+
+Phase 2 plan written in `docs/EXTRACTION_NOTES.md`: vision-assisted extraction (PyMuPDF render +
+multimodal LLM on page image), strict-JSON -> deterministic-TTL, validate, queue for review.
+Decisions logged as ADR-009 (approach) and ADR-010 (gold = the Phase-1 hand-entry).
+**Build-gate lifted:** Phase 2 CODING is now unblocked.
 
 ## Done
-- [x] Continuity kit + decisions (ADR-001..007).
-- [x] Ontology `ontology/mlkg.ttl` written, validated, and extended for Phase 1 vocab.
-- [x] Phase 0 setup bundle (docker-compose, init_fuseki.sh, Makefile, query.py).
-- [x] Seed paper ingested offline: `data/shwartzziv2022.ttl` (Table 2, 48 BenchmarkResults,
-      values + stdError, dataset characteristics). All flagged :conditionsComplete false.
+- [x] Continuity kit + decisions (ADR-001..010).
+- [x] Ontology `ontology/mlkg.ttl` written, validated, extended for Phase 1 vocab.
+- [x] Phase 0 setup bundle (docker-compose, init_fuseki.sh, load_data.sh, Makefile, query.py).
+- [x] Phase 1 data: `data/shwartzziv2022.ttl` (Table 2, 48 results) validated offline (749 triples).
 - [x] First eval pairs in `eval/eval_set.jsonl`.
-- [x] Phase 0 live: Fuseki up, ontology loaded (10 metrics; smoke query passed).
-- [x] Phase 1 live: `data/shwartzziv2022.ttl` loaded (48 BenchmarkResults confirmed); Gesture
-      cross-entropy ranking query verified — Deep Ensemble w/ XGBoost (78.93) 1st, XGBoost
-      (80.64) 2nd, both sourced to Table 2 p.6.
+- [x] Phase 2 plan + difficulties tracked in `docs/EXTRACTION_NOTES.md`.
+- [x] Phase 0 live: Fuseki confirmed up, ontology loaded, 10 metrics returned from live endpoint.
+- [x] Phase 1 live: data loaded (796 triples), Gesture ranking query confirmed on live endpoint.
 
 ## Next actions (in order)
-1. Refinement pass: model the seen-vs-unseen dataset condition (flip :conditionsComplete where done).
-2. Optionally extend to Table 2's other 5 datasets (note: YearPrediction = MSE, others cross-entropy).
-3. Phase 2 planning: extraction pipeline (PyMuPDF + LLM) — see EXTRACTION_NOTES.
+1. Phase 2 coding: implement pipeline stages in `docs/EXTRACTION_NOTES.md`, smallest first —
+   PyMuPDF render → single-page vision extraction → strict-JSON → deterministic-TTL → validate → proposals file.
+2. Run extractor on the Shwartz-Ziv page; diff vs gold; report precision/recall (ADR-010).
+3. (Deferred) model seen/unseen condition; extend to Table 2's other 5 datasets.
 
 ## Open questions / parking lot
-- Paper year: source PDF is arXiv:2106.03253v2 (Nov 2021); :year set to 2022 (Information Fusion). Confirm.
-- Dataset dedup: Higgs/CoverType etc. will recur in later papers — promote datasets to a shared
-  reference file then, and decide how to handle per-paper characteristic differences (size/split).
-- Should source PDFs be committed at all? (copyright/size — recommend gitignoring `pdfs/`).
+- Verify PyMuPDF table-finding + Anthropic API image/PDF input limits before coding Phase 2.
+- JSON record schema + normalization strategy (exact-match first; embeddings only if needed).
+- Paper year (2021 preprint vs 2022 journal); dataset dedup when a dataset first recurs.
 
 ## Known issues / risks
-- Conditions not yet modeled for this paper (seen/unseen) — honestly flagged, not closed.
-- Cross-entropy values carry a 100x factor (Table 2 caption); stored as printed, factor cancels
-  within-table. Watch when comparing across papers.
+- Conditions not modeled for Shwartz-Ziv (seen/unseen) — honestly flagged :conditionsComplete false.
+- Cross-entropy 100x factor stored as printed (cancels within-table; watch across papers).
+- Extraction quality is THE risk (vision-vs-text unproven) — validate empirically on the gold page.
 - OWL restrictions document but don't enforce required-core; SHACL deferred to Phase 2+.

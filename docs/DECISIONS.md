@@ -46,22 +46,34 @@ precision and citation accuracy.
 **Rejected.** Demo-only validation by eyeballing answers.
 
 ### ADR-007 — Always-working-slice discipline
-**Decision.** At every phase there must be a runnable end-to-end path, even with 1–3 papers.
+**Decision.** At every phase there must be a runnable end-to-end path, even with 1-3 papers.
 **Why.** Counterweight to the complexity accepted in ADR-001; protects the "tool I actually use" goal.
 **Rejected.** Build-all-infra-then-wire-it-up sequencing (high risk of the empty-cathedral failure).
 
 ### ADR-008 — Neo4j as future analytics/exploration layer (parked)
-
 **Decision.** Not adopting Neo4j now. Parked as a documented option for when/if RDF/SPARQL hits bottlenecks.
+**Why parked, not rejected.** RDF/OWL handles the semantic layer well for current scope. Neo4j would add
+value for graph analytics, citation-path exploration, recommendations, and visualization — but none are
+Phase 0-3 concerns. Adding it now violates always-working-slice.
+**The division if adopted later:** RDF stays authoritative (ontology, provenance, SHACL); Neo4j becomes a
+derived operational/analytical projection. Sync direction RDF -> Neo4j.
+**Trigger to revisit.** SPARQL too slow/rigid for navigation, OR corpus large enough that graph analytics pay off.
+**Rejected paths.** Neo4j-primary with RDF export (loses semantic guarantees). Dual-primary (no single source of truth).
 
-**Why parked, not rejected.** RDF/OWL handles the semantic layer well for current scope. Neo4j would add value for graph analytics, citation-path exploration, recommendations, and interactive visualization — but none of those are Phase 0–3 concerns. Adding it now violates the always-working-slice discipline.
+### ADR-009 — Extraction approach: vision-assisted, JSON intermediate, no auto-commit
+**Decision.** Phase 2 extraction = PyMuPDF to render pages + capture page numbers, a **multimodal LLM
+(Opus) reading the page image + caption + current ontology vocabulary**, emitting **strict JSON**, which
+**code deterministically converts to Turtle** (reusing the Phase-1 emitter), then validates and queues for review.
+**Why.** Tables don't survive plain text extraction (multi-column, ±, scientific notation, footnote/brace
+markers); a vision model reads them far more faithfully and sees the caption (metric/scaling) in context.
+JSON-then-TTL keeps the model out of the business of writing triples, so output is normalizable and validatable.
+**Rejected.** Text-only PyMuPDF extraction (mangles real tables); free-form Turtle straight from the LLM
+(inconsistent, hard to validate); auto-commit to Fuseki (violates CLAUDE.md rule 1).
+**Biggest risk to validate empirically.** Vision-vs-text quality on a real page — test on the Shwartz-Ziv
+page where we have gold. Revisit if vision underperforms or cost is prohibitive.
 
-**The division if adopted later:**
-- RDF remains authoritative (ontology, provenance, semantic inference, SHACL validation)
-- Neo4j becomes the operational/analytical interface (graph algorithms, recommendations, navigation)
-- Sync direction: RDF → Neo4j (RDF is primary, Neo4j is a derived projection)
-
-**Trigger to revisit.** SPARQL queries become too slow or too rigid for user-facing navigation needs, OR the corpus grows large enough that graph analytics (citation networks, method similarity) become useful.
-
-**Rejected paths.** Neo4j-primary with RDF export — loses semantic guarantees. Dual-primary — no single source of truth.
-
+### ADR-010 — The Phase-1 hand-entry is the extraction gold set
+**Decision.** Measure Phase 2 extraction by diffing extractor output against `data/shwartzziv2022.ttl`,
+reporting per-field precision/recall (value, metric, method/dataset, source).
+**Why.** Turns "no hallucination" into a measured number; reuses work already done; directly serves ADR-006.
+**Rejected.** Eyeballing extraction quality; building a separate labeled set from scratch.
