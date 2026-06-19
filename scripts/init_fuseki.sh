@@ -3,13 +3,14 @@
 # Idempotent — safe to re-run. Talks to Fuseki over standard HTTP, so it is image-agnostic.
 set -euo pipefail
 
+if [ -z "${FUSEKI_ADMIN_PASSWORD:-}" ]; then
+  echo "ERROR: FUSEKI_ADMIN_PASSWORD is not set. Copy .env.example to .env and set a real password before running make init." >&2
+  exit 1
+fi
+
 FUSEKI_URL="${FUSEKI_URL:-http://localhost:3030}"
 DATASET="${DATASET:-mlkg}"
 ADMIN_USER="${FUSEKI_ADMIN_USER:-admin}"
-if [ -z "${FUSEKI_ADMIN_PASSWORD:-}" ]; then
-  echo "Error: FUSEKI_ADMIN_PASSWORD is not set — run: source .env" >&2
-  exit 1
-fi
 ADMIN_PW="${FUSEKI_ADMIN_PASSWORD}"
 ONTOLOGY="${ONTOLOGY:-ontology/mlkg.ttl}"
 

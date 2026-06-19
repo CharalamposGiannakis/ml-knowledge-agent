@@ -39,6 +39,9 @@ Prereqs: Docker + Docker Compose. (No host Java needed — the image bundles it.
     bash scripts/load_data.sh data/<reviewed>.ttl     # load a reviewed .ttl (repeat per file)
     python3 scripts/query.py < some.rq                # run an ad-hoc SPARQL SELECT
 
+**Note:** `make init` will fail loudly if `FUSEKI_ADMIN_PASSWORD` is not set in `.env` — this is
+intentional. Copy `.env.example` to `.env` and set a real password first.
+
 - Fuseki UI:        http://localhost:3030  (user: admin, pw: from .env)
 - Query endpoint:   http://localhost:3030/mlkg/query
 - Update endpoint:  http://localhost:3030/mlkg/update
