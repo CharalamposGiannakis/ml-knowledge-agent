@@ -1,0 +1,52 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix :     <http://mlkg.local/ontology#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# =============================================================================
+# SHACL shapes — closed-world enforcement of the required core (what OWL only
+# documents). Run as a PRE-LOAD gate: a TTL that does not conform never enters
+# Fuseki. This is the structural-integrity half of the health check.
+# =============================================================================
+
+:BenchmarkResultShape a sh:NodeShape ;
+    sh:targetClass :BenchmarkResult ;
+    sh:property [ sh:path :reportsMethod ; sh:minCount 1 ; sh:maxCount 1 ; sh:class :Method ;
+                  sh:message "BenchmarkResult needs exactly one :reportsMethod -> :Method." ] ;
+    sh:property [ sh:path :onDataset ; sh:minCount 1 ; sh:maxCount 1 ; sh:class :Dataset ;
+                  sh:message "BenchmarkResult needs exactly one :onDataset -> :Dataset." ] ;
+    sh:property [ sh:path :usesMetric ; sh:minCount 1 ; sh:maxCount 1 ; sh:class :Metric ;
+                  sh:message "BenchmarkResult needs exactly one :usesMetric -> :Metric." ] ;
+    sh:property [ sh:path :hasValue ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:decimal ;
+                  sh:message "BenchmarkResult needs exactly one numeric :hasValue." ] ;
+    sh:property [ sh:path :hasSource ; sh:minCount 1 ; sh:maxCount 1 ; sh:class :SourceLocation ;
+                  sh:message "BenchmarkResult needs exactly one :hasSource -> :SourceLocation." ] ;
+    sh:property [ sh:path :stdError ; sh:maxCount 1 ; sh:datatype xsd:decimal ] ;
+    sh:property [ sh:path :conditionsComplete ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:boolean ;
+                  sh:message "BenchmarkResult must state :conditionsComplete (true/false)." ] .
+
+:SourceLocationShape a sh:NodeShape ;
+    sh:targetClass :SourceLocation ;
+    sh:property [ sh:path :fromPaper ; sh:minCount 1 ; sh:maxCount 1 ; sh:class :Paper ;
+                  sh:message "SourceLocation must point to exactly one :Paper." ] ;
+    sh:property [ sh:path :locator ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path :page ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ] .
+
+# The invariant that makes comparison logic work: every metric knows its direction.
+:MetricShape a sh:NodeShape ;
+    sh:targetClass :Metric ;
+    sh:property [ sh:path :optimizationDirection ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:in ( :HigherIsBetter :LowerIsBetter ) ;
+                  sh:message "Every :Metric must have an :optimizationDirection." ] .
+
+:PaperShape a sh:NodeShape ;
+    sh:targetClass :Paper ;
+    sh:property [ sh:path :title ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path :year  ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ] .
+
+:ConditionShape a sh:NodeShape ;
+    sh:targetClass :Condition ;
+    sh:property [ sh:path :conditionType ; sh:minCount 1 ; sh:maxCount 1 ; sh:class :ConditionType ] ;
+    sh:or ( [ sh:path :conditionValueNum  ; sh:minCount 1 ]
+            [ sh:path :conditionValueText ; sh:minCount 1 ] ) ;
+    sh:message "A Condition needs a type and at least one value (numeric or text)." .

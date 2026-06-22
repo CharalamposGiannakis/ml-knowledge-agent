@@ -28,6 +28,8 @@ table/figure, page). If the graph lacks the answer, it says so. No fabrication.
    ADR to `docs/DECISIONS.md` in the same change. The schema's source of truth is `ontology/mlkg.ttl`.
 5. **Required core fields** for any result: method, dataset, metric, value, source. Conditions are
    accept-and-flag if partial — never silently drop them, never hard-reject for being incomplete.
+6. **No .ttl enters Fuseki without a passing SHACL gate.** `scripts/load_data.sh` enforces this
+   automatically via `scripts/validate_shapes.py`. Never bypass or skip the gate.
 
 ## Model usage
 - Design, ontology, extraction-prompt work, runtime extraction → **Opus 4.8**.
@@ -45,8 +47,14 @@ Prereqs: Docker + Docker Compose. (No host Java needed — the image bundles it.
     source .env                                       # export vars into current shell
     docker compose up -d                              # start Fuseki at http://localhost:3030
     bash scripts/init_fuseki.sh                       # create dataset 'mlkg', load ontology, smoke query
-    bash scripts/load_data.sh data/<reviewed>.ttl     # load a reviewed .ttl (repeat per file)
+    make load-data FILE=data/<reviewed>.ttl           # SHACL gate + POST (preferred)
+    bash scripts/load_data.sh data/<reviewed>.ttl     # same gate, direct shell form
     python3 scripts/query.py < some.rq                # run an ad-hoc SPARQL SELECT
+
+    # Health harness
+    python3 scripts/validate_shapes.py data/<file>.ttl  # SHACL gate alone (pre-load check)
+    python3 scripts/healthcheck.py                       # Layer-2 SPARQL invariants (post-load)
+    python3 scripts/consistency.py                       # Layer-3 OWL consistency (periodic)
 
 **Note:** `make init` will fail loudly if `FUSEKI_ADMIN_PASSWORD` is not set in `.env` — this is
 intentional. Copy `.env.example` to `.env` and set a real password first.

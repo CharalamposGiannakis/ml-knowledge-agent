@@ -1,8 +1,8 @@
-.PHONY: help up down init query logs reset
+.PHONY: help up down init query logs reset validate load-data healthcheck consistency
 
 help:           ## show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-	  awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-8s\033[0m %s\n", $$1, $$2}'
+	  awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
 up:             ## start Fuseki (http://localhost:3030)
 	docker compose up -d
@@ -21,3 +21,16 @@ logs:           ## tail Fuseki logs
 
 reset:          ## DESTROY the volume and start clean (wipes all loaded data)
 	docker compose down -v
+
+validate:       ## SHACL gate: validate FILE against shapes (e.g. make validate FILE=data/foo.ttl)
+	@test -n "$(FILE)" || (echo "usage: make validate FILE=data/foo.ttl" >&2 && exit 1)
+	python3 scripts/validate_shapes.py $(FILE)
+
+load-data: validate  ## SHACL gate + Fuseki POST (e.g. make load-data FILE=data/foo.ttl)
+	bash scripts/load_data.sh $(FILE)
+
+healthcheck:    ## Layer-2 SPARQL invariant checks against live Fuseki
+	python3 scripts/healthcheck.py
+
+consistency:    ## Layer-3 transient OWL consistency check (periodic; ADR-015)
+	python3 scripts/consistency.py

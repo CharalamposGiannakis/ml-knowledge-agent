@@ -139,10 +139,11 @@ and deferred until after Phase 1.""" .
 :numFeatures   a owl:DatatypeProperty ; rdfs:label "num features"   ; rdfs:domain :Dataset ; rdfs:range xsd:integer .
 
 #################################################################
-#  Required-core cardinality (intent; enforcement = SHACL later)
+#  Required-core cardinality (documented here; enforced by SHACL pre-load gate)
 #################################################################
 # OWL is open-world, so these restrictions DOCUMENT the required core but do not
-# reject incomplete data on insert. Actual validation will be SHACL shapes (Phase 2+).
+# reject incomplete data on insert. Structural enforcement is ontology/shapes.ttl
+# (run via scripts/validate_shapes.py before any load — see ADR-015).
 
 :BenchmarkResult rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty :reportsMethod ; owl:cardinality "1"^^xsd:nonNegativeInteger ] ,

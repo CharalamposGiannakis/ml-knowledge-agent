@@ -105,9 +105,14 @@ knobs that vary across results in the same paper (injected noise, subsampled row
 
 ## What's intentionally deferred
 
-- **SHACL validation.** OWL is open-world: the cardinality restrictions *document* the required core
-  but do not *reject* an incomplete insert. Real enforcement at ingest time = SHACL shapes (Phase 2+,
-  when the pipeline writes to the graph). This is also the natural home for "reject if no source".
 - **Standard-vocabulary alignment.** A mature version maps `:title`→`dcterms:title`,
   `:hasSource`→`prov:wasDerivedFrom`, papers→BIBO. Kept in our own namespace for now for clarity;
   align after Phase 1 so it doesn't slow the first working slice.
+
+## SHACL enforcement (enforced as pre-load gate — `ontology/shapes.ttl`)
+
+SHACL is now enforced as a pre-load gate via `scripts/validate_shapes.py`. The OWL cardinality
+restrictions *document* the required core; `ontology/shapes.ttl` *rejects* any conformance failure
+before a .ttl reaches Fuseki. The shapes cover: required core (method/dataset/metric/value/source),
+referential integrity (`sh:class`), metric direction, conditionsComplete flag, SourceLocation fields,
+and Paper fields. See `docs/health_checks.md` for the full four-layer test strategy (ADR-015).

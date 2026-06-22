@@ -157,7 +157,7 @@ This is the line that turns a demo into a system in an interview.
   Fuseki running, ontology loaded. *Slice: SPARQL query returns nothing, but runs.*
 - **Phase 1 — Thin vertical slice.** Hand-enter ONE paper's results as triples. Agent answers one
   real question with a real citation. *Slice: end-to-end works on 1 paper, zero pipeline.*
-- **Phase 2 — Extraction pipeline.** PyMuPDF + LLM proposes triples from a PDF; writes `proposals/<paper>.jsonl` + flag queue for review (no auto-commit).
+- **Phase 2 — Extraction pipeline.** PyMuPDF + LLM proposes triples from a PDF; writes `proposals/<paper>.jsonl` + flag queue for review (no auto-commit). SHACL enforced as pre-load gate (`ontology/shapes.ttl`; ADR-015).
 - **Phase 3 — Review UI.** Accept/edit/reject proposals into the graph. Log decisions.
 - **Phase 4 — Agent routing.** SPARQL vs semantic search vs both; merge; sourced answer.
 - **Phase 5 — Eval.** ~30 Q→source pairs; report retrieval + citation accuracy.

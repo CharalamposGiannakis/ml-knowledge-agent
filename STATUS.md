@@ -8,7 +8,7 @@
 
 ## Where we are
 **Phase:** Phase 2 closed — 88 BenchmarkResults live in Fuseki under deterministic IRI scheme.
-**Date of last update:** 2026-06-20
+**Date of last update:** 2026-06-22
 
 ADR-014 decided and implemented: emit_ttl now mints IRIs as
   :r_{paper_id}__{method_local}__{dataset_local}__{metric_local}
@@ -41,6 +41,9 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
 - [x] Fuseki clean-reloaded: ontology + shwartzziv2022_full.ttl only; 88 BenchmarkResults, 0 dups.
 - [x] Scorer precision fixed: 40 beyond-gold records excluded from precision denominator (100% P/R).
 - [x] GIT DISCIPLINE rule added to CLAUDE.md.
+- [x] ADR-015: ontology health harness built (SHACL gate + SPARQL invariants + OWL consistency).
+      scripts/validate_shapes.py, healthcheck.py, consistency.py; load_data.sh gates on SHACL;
+      Makefile targets validate/load-data/healthcheck/consistency added.
 
 ## Next actions (in order)
 1. Add second paper to the corpus; run full Phase 2 pipeline (render -> vision -> normalise -> review).
@@ -53,4 +56,3 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
 ## Known issues / risks
 - Conditions still not modeled for Shwartz-Ziv (seen/unseen) -- flagged :conditionsComplete false.
 - Cross-entropy 100x factor stored as printed (cancels within-table; preserved in caption/metric_raw).
-- OWL restrictions document but don't enforce required-core; SHACL deferred.
