@@ -99,12 +99,17 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
       password: **RESOLVED** — rotated by the user.
 - [x] ADR-016 recorded (proportionate strictness: minimal enforced invariants, permissive schema
       + read-open/write-gated store, tighten only on demonstrated failure).
+- [x] ADR-017 recorded + implemented: seen/unseen modeled as an optional annotation
+      (`:datasetSeenByModel` in {"seen","unseen"}) on the 44 deep-model BenchmarkResults
+      (TabNet/DNF-Net/NODE seen on their 3 provenance datasets each, unseen elsewhere;
+      1D-CNN unseen on all 11); XGBoost + the 3 ensembles left unannotated (N/A). No IRI
+      changes (88 IRIs diffed identical before/after). `:conditionsComplete` flipped to
+      true on all 88. SHACL shape (optional `sh:in`) + healthcheck invariant I added.
+      Clean-reloaded; all 9 healthcheck invariants green; flagship XGBoost/Gesture/CE=80.64
+      confirmed; 38/38 tests still pass.
 
 ## Next actions (in order)
-1. Condition model + IRI migration: model seen/unseen for Shwartz-Ziv with the MINIMAL
-   condition shape (ADR-016); extend the IRI key with a condition hash so the split can't
-   collide into one multi-valued node; regenerate + reload the 88. Design with Opus in
-   chat, then Claude Code implements.
+1. IRI condition-slug — deferred to paper #2's noise condition (ADR-017).
 2. Build the query agent (Phase 3/4 vertical slice): natural-language question -> SPARQL ->
    sourced answer, on the now-stable IRI scheme. Design with Opus, then implement. Priority:
    a bigger graph you can't query is the empty-cathedral failure (ADR-007, audit).
@@ -119,5 +124,4 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
   "measured, not asserted" reliability only holds for paper #1's hand-made gold.
 
 ## Known issues / risks
-- Conditions still not modeled for Shwartz-Ziv (seen/unseen) -- flagged :conditionsComplete false.
 - Cross-entropy 100x factor stored as printed (cancels within-table; preserved in caption/metric_raw).

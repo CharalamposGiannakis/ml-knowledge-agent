@@ -23,7 +23,10 @@
                   sh:message "BenchmarkResult needs exactly one :hasSource -> :SourceLocation." ] ;
     sh:property [ sh:path :stdError ; sh:maxCount 1 ; sh:datatype xsd:decimal ] ;
     sh:property [ sh:path :conditionsComplete ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:boolean ;
-                  sh:message "BenchmarkResult must state :conditionsComplete (true/false)." ] .
+                  sh:message "BenchmarkResult must state :conditionsComplete (true/false)." ] ;
+    sh:property [ sh:path :datasetSeenByModel ; sh:minCount 0 ; sh:maxCount 1 ;
+                  sh:in ( "seen" "unseen" ) ;
+                  sh:message "If present, :datasetSeenByModel must be 'seen' or 'unseen'." ] .
 
 :SourceLocationShape a sh:NodeShape ;
     sh:targetClass :SourceLocation ;

@@ -217,3 +217,24 @@ agent caveat — not the full apparatus — until a real query proves more is ne
 **Rejected.** Strict-everywhere-up-front (constraints for papers/threats not yet met; brittle, slow,
 often illusory). Relax-everything (unsafe without the minimal gate). Read-authenticated access
 (puts write credentials in the read-only agent's hands; inverts the threat model).
+
+### ADR-017 — Seen/unseen is a derived annotation, not an identity-bearing condition; IRI slug deferred
+**Decision.** (1) Model the paper's seen/unseen variable as a lightweight annotation on
+BenchmarkResult (`:datasetSeenByModel` in {"seen","unseen"}), applied to the four deep models
+per Table 1's provenance; omitted for XGBoost and the ensembles (no originating paper → N/A).
+(2) Seen/unseen does NOT enter the IRI and is NOT a joinable `:Condition`. (3) The IRI
+condition-slug migration is deferred to the first paper reporting one (method,dataset,metric)
+under multiple genuine experimental conditions (paper #2: label-noise levels), and applied to
+that paper's results — not retrofitted onto the current 88.
+**Why.** Seen/unseen is functionally determined by (model,dataset): a pair is seen or unseen,
+never both, so it never splits a (method,dataset,metric) into two results and cannot collide —
+the current 88 IRIs are already unique and need no migration (this revises audit H4 / the STATUS
+next-action, which assumed a collision that cannot occur). It is also model-specific, not shared
+setup: as a joinable `:Condition` it would break the paper's central comparison (XGBoost, which
+has no seen/unseen status, vs a deep model that does). An annotation keeps it queryable without
+breaking joins and reserves the reified `:Condition` machinery for a real shared condition
+(paper #2's noise). Deferring the slug follows ADR-016 — build on demonstrated need — and costs
+nothing extra, since the 88 are never re-IRI'd either way.
+**Rejected.** Seen/unseen in the IRI (encodes a derived fact; churns 88 IRIs for no benefit).
+Seen/unseen as a joinable `:Condition` (breaks XGBoost-vs-deep comparison). A condition-hash
+migration "now" (fixes a non-existent collision). Flat boolean (loses the N/A case for baselines).

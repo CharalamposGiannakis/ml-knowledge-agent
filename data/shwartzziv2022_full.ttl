@@ -4,7 +4,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 :r_shwartzziv2022__deepensemblenoxgb_sz2022__ds_blastchar__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 24.25 ;
@@ -14,7 +14,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblenoxgb_sz2022__ds_covertype__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 3.52 ;
@@ -24,7 +24,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblenoxgb_sz2022__ds_epsilon__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 10.95 ;
@@ -34,7 +34,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblenoxgb_sz2022__ds_eye__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 69.28 ;
@@ -44,7 +44,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblenoxgb_sz2022__ds_gas__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 1.98 ;
@@ -54,7 +54,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblenoxgb_sz2022__ds_gesture__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 93.5 ;
@@ -64,7 +64,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblenoxgb_sz2022__ds_higgs__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 22.41 ;
@@ -74,7 +74,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblenoxgb_sz2022__ds_mslr__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 55.59 ;
@@ -84,7 +84,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblenoxgb_sz2022__ds_rossmann__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 489.94 ;
@@ -94,7 +94,7 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__deepensemblenoxgb_sz2022__ds_shrutime__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 14.69 ;
@@ -104,7 +104,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblenoxgb_sz2022__ds_yearprediction__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 78.99 ;
@@ -114,7 +114,7 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__deepensemblexgb_sz2022__ds_blastchar__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 20.18 ;
@@ -124,7 +124,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblexgb_sz2022__ds_covertype__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 2.99 ;
@@ -134,7 +134,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblexgb_sz2022__ds_epsilon__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 11.18 ;
@@ -144,7 +144,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblexgb_sz2022__ds_eye__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 59.43 ;
@@ -154,7 +154,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblexgb_sz2022__ds_gas__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 1.69 ;
@@ -164,7 +164,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblexgb_sz2022__ds_gesture__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 78.93 ;
@@ -174,7 +174,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblexgb_sz2022__ds_higgs__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 22.34 ;
@@ -184,7 +184,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblexgb_sz2022__ds_mslr__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 55.38 ;
@@ -194,7 +194,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblexgb_sz2022__ds_rossmann__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 485.33 ;
@@ -204,7 +204,7 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__deepensemblexgb_sz2022__ds_shrutime__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 13.1 ;
@@ -214,7 +214,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__deepensemblexgb_sz2022__ds_yearprediction__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 76.19 ;
@@ -224,7 +224,8 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__dnfnet__ds_blastchar__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 27.91 ;
@@ -234,7 +235,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__dnfnet__ds_covertype__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 3.96 ;
@@ -244,7 +246,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__dnfnet__ds_epsilon__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 12.23 ;
@@ -254,7 +257,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__dnfnet__ds_eye__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "seen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 68.38 ;
@@ -264,7 +268,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__dnfnet__ds_gas__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "seen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 1.44 ;
@@ -274,7 +279,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__dnfnet__ds_gesture__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "seen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 86.98 ;
@@ -284,7 +290,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__dnfnet__ds_higgs__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 23.68 ;
@@ -294,7 +301,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__dnfnet__ds_mslr__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 56.83 ;
@@ -304,7 +312,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__dnfnet__ds_rossmann__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 503.83 ;
@@ -314,7 +323,8 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__dnfnet__ds_shrutime__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 16.8 ;
@@ -324,7 +334,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__dnfnet__ds_yearprediction__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 81.21 ;
@@ -334,7 +345,8 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__node__ds_blastchar__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 21.4 ;
@@ -344,7 +356,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__node__ds_covertype__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 4.15 ;
@@ -354,7 +367,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__node__ds_epsilon__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "seen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 10.39 ;
@@ -364,7 +378,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__node__ds_eye__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 68.35 ;
@@ -374,7 +389,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__node__ds_gas__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 2.17 ;
@@ -384,7 +400,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__node__ds_gesture__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 92.12 ;
@@ -394,7 +411,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__node__ds_higgs__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 21.19 ;
@@ -404,7 +422,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__node__ds_mslr__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "seen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 55.72 ;
@@ -414,7 +433,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__node__ds_rossmann__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 488.59 ;
@@ -424,7 +444,8 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__node__ds_shrutime__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 14.61 ;
@@ -434,7 +455,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__node__ds_yearprediction__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "seen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 76.39 ;
@@ -444,7 +466,8 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__onedcnn__ds_blastchar__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 24.68 ;
@@ -454,7 +477,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__onedcnn__ds_covertype__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 3.51 ;
@@ -464,7 +488,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__onedcnn__ds_epsilon__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 11.08 ;
@@ -474,7 +499,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__onedcnn__ds_eye__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 67.9 ;
@@ -484,7 +510,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__onedcnn__ds_gas__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 1.79 ;
@@ -494,7 +521,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__onedcnn__ds_gesture__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 97.89 ;
@@ -504,7 +532,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__onedcnn__ds_higgs__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 22.33 ;
@@ -514,7 +543,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__onedcnn__ds_mslr__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 55.97 ;
@@ -524,7 +554,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__onedcnn__ds_rossmann__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 493.81 ;
@@ -534,7 +565,8 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__onedcnn__ds_shrutime__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 15.31 ;
@@ -544,7 +576,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__onedcnn__ds_yearprediction__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 78.94 ;
@@ -554,7 +587,7 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__simpleensemble_sz2022__ds_blastchar__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 21.18 ;
@@ -564,7 +597,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__simpleensemble_sz2022__ds_covertype__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 3.19 ;
@@ -574,7 +607,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__simpleensemble_sz2022__ds_epsilon__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 11.07 ;
@@ -584,7 +617,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__simpleensemble_sz2022__ds_eye__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 58.72 ;
@@ -594,7 +627,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__simpleensemble_sz2022__ds_gas__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 2.36 ;
@@ -604,7 +637,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__simpleensemble_sz2022__ds_gesture__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 89.45 ;
@@ -614,7 +647,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__simpleensemble_sz2022__ds_higgs__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 22.46 ;
@@ -624,7 +657,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__simpleensemble_sz2022__ds_mslr__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 55.46 ;
@@ -634,7 +667,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__simpleensemble_sz2022__ds_rossmann__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 488.57 ;
@@ -644,7 +677,7 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__simpleensemble_sz2022__ds_shrutime__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 13.61 ;
@@ -654,7 +687,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__simpleensemble_sz2022__ds_yearprediction__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 78.01 ;
@@ -664,7 +697,8 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__tabnet__ds_blastchar__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 23.72 ;
@@ -674,7 +708,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__tabnet__ds_covertype__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "seen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 3.01 ;
@@ -684,7 +719,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__tabnet__ds_epsilon__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 11.92 ;
@@ -694,7 +730,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__tabnet__ds_eye__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 67.13 ;
@@ -704,7 +741,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__tabnet__ds_gas__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 1.92 ;
@@ -714,7 +752,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__tabnet__ds_gesture__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 96.42 ;
@@ -724,7 +763,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__tabnet__ds_higgs__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "seen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 21.14 ;
@@ -734,7 +774,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__tabnet__ds_mslr__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 56.04 ;
@@ -744,7 +785,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__tabnet__ds_rossmann__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "seen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 485.12 ;
@@ -754,7 +796,8 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__tabnet__ds_shrutime__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 14.94 ;
@@ -764,7 +807,8 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__tabnet__ds_yearprediction__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
+    :datasetSeenByModel "unseen" ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 83.19 ;
@@ -774,7 +818,7 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__xgboost__ds_blastchar__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 20.39 ;
@@ -784,7 +828,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__xgboost__ds_covertype__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 3.13 ;
@@ -794,7 +838,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__xgboost__ds_epsilon__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 11.12 ;
@@ -804,7 +848,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__xgboost__ds_eye__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 56.07 ;
@@ -814,7 +858,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__xgboost__ds_gas__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 2.18 ;
@@ -824,7 +868,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__xgboost__ds_gesture__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 80.64 ;
@@ -834,7 +878,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__xgboost__ds_higgs__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 21.62 ;
@@ -844,7 +888,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__xgboost__ds_mslr__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 55.43 ;
@@ -854,7 +898,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__xgboost__ds_rossmann__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 490.18 ;
@@ -864,7 +908,7 @@
     :usesMetric :MSE .
 
 :r_shwartzziv2022__xgboost__ds_shrutime__crossentropyloss a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 13.82 ;
@@ -874,7 +918,7 @@
     :usesMetric :CrossEntropyLoss .
 
 :r_shwartzziv2022__xgboost__ds_yearprediction__mse a :BenchmarkResult ;
-    :conditionsComplete false ;
+    :conditionsComplete true ;
     :extractedBy "claude-opus-4-8" ;
     :hasSource :src_sz2022_t2 ;
     :hasValue 77.98 ;

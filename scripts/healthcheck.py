@@ -91,6 +91,15 @@ CHECKS = [
         ),
         "mode": "zero_rows",
     },
+    {
+        "id": "I",
+        "desc": ":datasetSeenByModel value outside {seen, unseen} (expect 0 rows, ADR-017)",
+        "query": _P + (
+            "SELECT ?r ?v WHERE { ?r :datasetSeenByModel ?v .\n"
+            "  FILTER (?v NOT IN (\"seen\", \"unseen\")) }"
+        ),
+        "mode": "zero_rows",
+    },
 ]
 
 

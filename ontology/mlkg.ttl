@@ -207,6 +207,9 @@ and deferred until after Phase 1.""" .
     rdfs:comment "Standard error of the mean for the reported value, when given." .
 :numClasses a owl:DatatypeProperty ;
     rdfs:label "num classes" ; rdfs:domain :Dataset ; rdfs:range xsd:integer .
+:datasetSeenByModel a owl:DatatypeProperty ;
+    rdfs:label "dataset seen by model" ; rdfs:domain :BenchmarkResult ; rdfs:range xsd:string ;
+    rdfs:comment "Whether this dataset was 'seen' (used for model design/tuning) or 'unseen' by the reported model, per the paper's own provenance (ADR-017). Optional; omitted where not applicable (e.g. XGBoost, ensembles)." .
 
 # --- New metrics (both lower-is-better) ---
 :MSE a :Metric ; rdfs:label "Mean squared error" ; :optimizationDirection :LowerIsBetter .
