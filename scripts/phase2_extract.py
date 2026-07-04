@@ -230,11 +230,12 @@ INSTRUCTIONS
 OUTPUT STRUCTURE (one entry in "results" per table cell):
 {schema}"""
 
-    print(f"[extract] Calling {MODEL} (vision, {len(png)//1024}KB)  max_tokens=16384  temperature=0...")
+    print(f"[extract] Calling {MODEL} (vision, {len(png)//1024}KB)  max_tokens=16384...")
+    # claude-opus-4-8 rejects temperature (400) — determinism rests on PROMPT_VERSION
+    # and deterministic JSON->TTL conversion, not sampling params.
     response = client.messages.create(
         model=MODEL,
         max_tokens=16384,
-        temperature=0,
         messages=[{
             "role": "user",
             "content": [

@@ -88,11 +88,14 @@ The corpus starts small — a few dozen carefully chosen papers — and grows on
 
 The sections above describe the target system. What's actually built and live today: the
 OWL/RDF ontology, the Apache Jena Fuseki graph store, the SHACL pre-load gate + SPARQL
-invariant health harness, and a working (manually-invoked) extraction pipeline — one paper
-(Shwartz-Ziv & Armon, 2022) reviewed into 88 `BenchmarkResult` records. The query agent,
-the semantic/vector layer (ChromaDB), the FastAPI backend, and the chat interface described
-above are roadmap, not yet built. `STATUS.md` and `docs/DECISIONS.md` are the authoritative,
-current state; this README is the destination, not a status report.
+invariant health harness, a working (manually-invoked) extraction pipeline — one paper
+(Shwartz-Ziv & Armon, 2022) reviewed into 88 `BenchmarkResult` records — and the query agent
+(`agent/` package): natural-language question -> entity resolution -> one of 4 parameterised
+SPARQL operations -> guarded, sourced narration, available via CLI and a FastAPI backend
+(`POST /ask`), with an 18/18 retrieval eval. The semantic/vector layer (ChromaDB) and the
+chat interface described above are roadmap, not yet built. `STATUS.md` and
+`docs/DECISIONS.md` are the authoritative, current state; this README is the destination,
+not a status report.
 
 ---
 
