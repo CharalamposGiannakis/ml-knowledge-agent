@@ -1,0 +1,58 @@
+# Toy graph for query-agent tests: two metrics with OPPOSITE optimization
+# directions, three methods, two datasets + one empty dataset, seen/unseen
+# annotations on TabNet (ADR-017 style). Values chosen so winners/ranks are
+# unambiguous and direction-sensitive.
+@prefix :     <http://mlkg.local/ontology#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+:Accuracy a :Metric ; rdfs:label "Accuracy" ; skos:altLabel "Acc" ;
+    :optimizationDirection :HigherIsBetter .
+:LogLoss a :Metric ; rdfs:label "Log loss" ;
+    :optimizationDirection :LowerIsBetter .
+
+:XGBoost a :Method ; rdfs:label "XGBoost" ; skos:altLabel "XGB" .
+:TabNet  a :Method ; rdfs:label "TabNet" .
+:NODE    a :Method ; rdfs:label "NODE" .
+
+:ds_alpha a :Dataset ; rdfs:label "Alpha Phase" ; skos:altLabel "Alpha" .
+:ds_beta  a :Dataset ; rdfs:label "Beta" .
+:ds_empty a :Dataset ; rdfs:label "Empty Set" .
+
+:paper_toy a :Paper ; :title "Toy Paper" ; :year 2026 .
+:src_toy a :SourceLocation ; :fromPaper :paper_toy ;
+    :locator "Table 9" ; :page 3 .
+
+# Alpha Phase / Accuracy (higher is better): XGBoost > NODE > TabNet
+:r_xgb_alpha_acc a :BenchmarkResult ;
+    :reportsMethod :XGBoost ; :onDataset :ds_alpha ; :usesMetric :Accuracy ;
+    :hasValue 0.9 ; :stdError 0.01 ; :hasSource :src_toy .
+:r_node_alpha_acc a :BenchmarkResult ;
+    :reportsMethod :NODE ; :onDataset :ds_alpha ; :usesMetric :Accuracy ;
+    :hasValue 0.85 ; :hasSource :src_toy .
+:r_tabnet_alpha_acc a :BenchmarkResult ;
+    :reportsMethod :TabNet ; :onDataset :ds_alpha ; :usesMetric :Accuracy ;
+    :hasValue 0.8 ; :hasSource :src_toy ;
+    :datasetSeenByModel "seen" .
+
+# Alpha Phase / Log loss (lower is better): TabNet beats XGBoost; NODE absent
+:r_xgb_alpha_ll a :BenchmarkResult ;
+    :reportsMethod :XGBoost ; :onDataset :ds_alpha ; :usesMetric :LogLoss ;
+    :hasValue 0.3 ; :hasSource :src_toy .
+:r_tabnet_alpha_ll a :BenchmarkResult ;
+    :reportsMethod :TabNet ; :onDataset :ds_alpha ; :usesMetric :LogLoss ;
+    :hasValue 0.2 ; :hasSource :src_toy ;
+    :datasetSeenByModel "seen" .
+
+# Beta / Accuracy: TabNet best (unseen for TabNet)
+:r_xgb_beta_acc a :BenchmarkResult ;
+    :reportsMethod :XGBoost ; :onDataset :ds_beta ; :usesMetric :Accuracy ;
+    :hasValue 0.7 ; :hasSource :src_toy .
+:r_node_beta_acc a :BenchmarkResult ;
+    :reportsMethod :NODE ; :onDataset :ds_beta ; :usesMetric :Accuracy ;
+    :hasValue 0.72 ; :hasSource :src_toy .
+:r_tabnet_beta_acc a :BenchmarkResult ;
+    :reportsMethod :TabNet ; :onDataset :ds_beta ; :usesMetric :Accuracy ;
+    :hasValue 0.75 ; :hasSource :src_toy ;
+    :datasetSeenByModel "unseen" .

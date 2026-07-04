@@ -238,3 +238,28 @@ nothing extra, since the 88 are never re-IRI'd either way.
 **Rejected.** Seen/unseen in the IRI (encodes a derived fact; churns 88 IRIs for no benefit).
 Seen/unseen as a joinable `:Condition` (breaks XGBoost-vs-deep comparison). A condition-hash
 migration "now" (fixes a non-existent collision). Flat boolean (loses the N/A case for baselines).
+
+### ADR-018 — Query trust boundary: the agent selects operations, it does not write SPARQL
+**Decision.** The query agent translates a natural-language question into a CHOICE among a small
+library of hand-written, tested, parameterised SPARQL operations (compare, rank, lookup,
+filter-aggregate, provenance). The LLM resolves entities to canonical URIs (matching the question's
+terms against rdfs:label / skos:altLabel already in the graph), selects the operation, fills its
+slots, and narrates the returned rows with their sources. The LLM never emits raw SPARQL.
+Deterministic code owns the query language — exactly as ADR-009 has code, not the model, own
+triple-writing on ingestion.
+**Why.** The project's guarantee is sourced, non-fabricated answers. An LLM writing free SPARQL can
+produce fluent, cited, semantically-wrong answers (wrong join, wrong condition filter, inverted
+metric direction, incommensurable-scale comparison) — reintroducing hallucination at the query
+layer, the exact failure the structured graph exists to prevent. Fixed operations are verified once
+and tested; metric direction is read from :optimizationDirection, never guessed. Benchmark questions
+are structurally bounded (compare/rank/lookup/filter/provenance), so a small operation set covers
+most real questions; an unsupported shape yields an honest "I can't express that yet", preferable to
+a confident wrong answer. Operations are added only when a real question demands one (ADR-016).
+**Consequences.** Entity resolution reuses the SKOS alias infrastructure from ADR-013. The agent
+holds read-only credentials (ADR-016), so no query can mutate the graph. Narration is constrained to
+returned rows + their SourceLocations; the agent adds no facts.
+**Rejected.** Text-to-SPARQL (LLM writes the query) — violates the ADR-009 boundary on the query
+side; schema-validation can't catch semantic errors. Text-to-SPARQL-with-validation-gate — PARKED as
+a documented future option (cf. ADR-008) for when the operation library demonstrably can't express a
+needed question; not built pre-emptively. Bare templates without entity resolution — brittle on
+naming variants.

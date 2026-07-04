@@ -126,6 +126,60 @@ extraction precision.
 
 ---
 
+## Query agent (`agent/` — the Phase-3/4 vertical slice)
+
+Natural-language question → sourced answer, under the ADR-018 trust boundary: **the LLM never
+writes SPARQL**. Every query the agent can run is hand-written, parameterised, and tested in
+`agent/operations.py`; the model only chooses among them and narrates the rows they return.
+
+```
+question ──▶ RESOLVE+SELECT (LLM, forced tool call: operation + slot URIs
+             matched against the catalog of rdfs:label / skos:altLabel)
+                  │  validated by code: catalog membership + entity type +
+                  │  URI shape — nothing model-authored reaches the query
+                  ▼
+             EXECUTE (code-built SPARQL, anonymous SELECT via scripts/query.py
+             — ADR-016: the agent holds no write credentials)
+                  │
+                  ▼
+             SHAPE (deterministic: winners/ranks from :optimizationDirection,
+             citations from :SourceLocation, seen/unseen from ADR-017 annotation)
+                  │
+                  ▼
+             NARRATE (LLM prose over the shaped payload only)
+                  │
+                  ▼
+             GUARD (deterministic: every number in the prose must exist in the
+             payload; an exact "<locator>, p.<page>" citation must be present;
+             failure falls back to the always-correct template narration)
+```
+
+**The loop** (`agent/loop.py`, `answer_question`) is shared by both frontends: the CLI
+(`python -m agent "..."`) and the FastAPI route (`agent/api.py`, `POST /ask`).
+
+**Operation library** (`agent/operations.py`): `compare_pair` (flagship), `best_on_dataset`,
+`lookup_result`, `seen_unseen` (mean rank on seen vs unseen datasets per ADR-017). Adding an
+operation = one `OperationSpec` (slots, SPARQL builder, shaper, one-line description for the
+planner prompt) — added only when a real question demands one (ADR-016/018).
+
+**Honesty contract** (statuses of `Answer`): empty result → `not_in_graph`; term matching no
+label/alias → `not_in_graph` naming the term; term matching >1 entity → `ambiguous` with the
+candidates; question shape outside the library → `unsupported` ("I can't express that yet");
+a pairwise comparison where only one side has data is *not* an answer (honest partial +
+citation). Never a guess.
+
+**Known limit:** comparisons are within (dataset, metric) in one graph; the stored-as-printed
+×100 cross-entropy scale (STATUS parking lot) means cross-paper comparisons need the value-scale
+ADR before paper #2 lands.
+
+**Eval** (`eval/eval_set.jsonl` + `eval/run_eval.py`, ADR-006): 18 question→expected-outcome
+pairs incl. honest-refusal and disambiguation cases; reports retrieval accuracy (status /
+winner / value / ranks) and citation accuracy (locator+page). The eval runs the real loop
+against live Fuseki with the real planner; narration is templated during eval because scoring
+is structural, not prose.
+
+---
+
 ## Reliability must be measured, not asserted
 
 The README's whole pitch is "no hallucination." That claim is only credible if measured.

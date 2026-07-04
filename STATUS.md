@@ -7,13 +7,13 @@
 ---
 
 ## Where we are
-**Phase:** Phase 2 closed — 88 BenchmarkResults live in Fuseki under deterministic IRI scheme.
-Acted on an external audit (`docs/fable.md`) of the health harness + extraction pipeline;
-mechanical fixes only. Then diagnosed and fixed a Fuseki connection-loop regression caused by
-the audit's own image-pin change (see below). Verified end-to-end: 88 BenchmarkResults live,
-all 8 healthcheck invariants green. ADR-016 (proportionate strictness) recorded. This work,
-plus this documentation sync, is committed.
-**Date of last update:** 2026-07-04
+**Phase:** Query agent built (Phase 3/4 vertical slice, ADR-018) on top of the closed Phase 2
+graph (88 BenchmarkResults, deterministic IRIs). Natural-language question -> operation choice
+-> code-built SPARQL -> sourced answer, with the LLM never writing SPARQL. Flagship proven live
+end-to-end ("Did XGBoost beat TabNet on Gesture?" -> XGBoost wins, Table 2, p.6, LLM narration
+passing the deterministic guard). Eval harness: 18/18 retrieval, 13/13 citation accuracy.
+59/59 tests green. CLI + FastAPI route share one loop. Awaiting review/commit.
+**Date of last update:** 2026-07-05
 
 ADR-014 decided and implemented: emit_ttl now mints IRIs as
   :r_{paper_id}__{method_local}__{dataset_local}__{metric_local}
@@ -107,14 +107,28 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
       true on all 88. SHACL shape (optional `sh:in`) + healthcheck invariant I added.
       Clean-reloaded; all 9 healthcheck invariants green; flagship XGBoost/Gesture/CE=80.64
       confirmed; 38/38 tests still pass.
+- [x] ADR-018 recorded + query agent built (`agent/` package): the LLM resolves entities against
+      the catalog (rdfs:label/skos:altLabel, ADR-013), selects one of 4 hand-written parameterised
+      SPARQL operations (compare_pair, best_on_dataset, lookup_result, seen_unseen), and narrates;
+      code validates slots (catalog membership + type + URI shape), builds/executes SPARQL
+      anonymously (ADR-016), derives winners from :optimizationDirection, and guards narration
+      (every number must exist in the returned rows; exact "<locator>, p.<page>" citation
+      required; failed guard falls back to the deterministic template). Honest statuses:
+      not_in_graph / ambiguous / unsupported; one-sided comparisons are refused with the partial
+      fact + citation. CLI (`python -m agent`) + FastAPI (`agent/api.py`, POST /ask) share the
+      loop. Eval harness (`eval/run_eval.py`, eval_set.jsonl grown 2 -> 18 items incl. honest-
+      refusal/ambiguity/unsupported cases): 18/18 retrieval, 13/13 citation accuracy, live.
+      Tests 38 -> 59 (direction both ways, empty result, alias/unknown-term resolution,
+      SPARQL-injection slot rejection, guard, seen/unseen ranks, API smoke), all green.
+      Note: Opus 4.8 rejects the `temperature` param (deprecated) — planner/narrator calls
+      send none.
 
 ## Next actions (in order)
 1. IRI condition-slug — deferred to paper #2's noise condition (ADR-017).
-2. Build the query agent (Phase 3/4 vertical slice): natural-language question -> SPARQL ->
-   sourced answer, on the now-stable IRI scheme. Design with Opus, then implement. Priority:
-   a bigger graph you can't query is the empty-cathedral failure (ADR-007, audit).
-3. Add paper #2 through the honest gate; measure via sampled back-verification + a persisted
-   review-decision log.
+2. Add paper #2 through the honest gate; measure via sampled back-verification + a persisted
+   review-decision log. Value-scale ADR must land first (parking lot).
+3. Extend the agent only on demonstrated need (ADR-016/018): next real question that doesn't fit
+   the 4 operations earns its operation (e.g. provenance/"where is this from?").
 
 ## Open questions / parking lot
 - Paper year (ADR-011 rule) and dataset dedup when a dataset first recurs in a new paper.

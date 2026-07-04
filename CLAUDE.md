@@ -60,6 +60,11 @@ Prereqs: Docker + Docker Compose. (No host Java needed — the image bundles it.
     python3 scripts/validate_shapes.py data/<file>.ttl  # SHACL gate alone (pre-load check)
     python3 scripts/healthcheck.py                       # SPARQL invariants, incl. logical checks (post-load)
 
+    # Query agent (ADR-018; needs ANTHROPIC_API_KEY in .env for the planner)
+    python3 -m agent "Did XGBoost beat TabNet on Gesture?"   # CLI (--explain, --json, --no-llm-narration)
+    uvicorn agent.api:app --port 8000                        # same loop over HTTP: POST /ask {"question": ...}
+    python3 eval/run_eval.py                                 # eval harness: retrieval + citation accuracy
+
 **Note:** `make init` will fail loudly if `FUSEKI_ADMIN_PASSWORD` is not set in `.env` — this is
 intentional. Copy `.env.example` to `.env` and set a real password first.
 
