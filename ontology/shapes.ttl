@@ -39,6 +39,16 @@
                   sh:in ( :HigherIsBetter :LowerIsBetter ) ;
                   sh:message "Every :Metric must have an :optimizationDirection." ] .
 
+:DatasetShape a sh:NodeShape ;
+    sh:targetClass :Dataset ;
+    sh:property [ sh:path rdfs:label ; sh:minCount 1 ;
+                  sh:message "Dataset must have an rdfs:label (catches dangling/typo'd URIs)." ] .
+
+:MethodShape a sh:NodeShape ;
+    sh:targetClass :Method ;
+    sh:property [ sh:path rdfs:label ; sh:minCount 1 ;
+                  sh:message "Method must have an rdfs:label (catches dangling/typo'd URIs)." ] .
+
 :PaperShape a sh:NodeShape ;
     sh:targetClass :Paper ;
     sh:property [ sh:path :title ; sh:minCount 1 ; sh:maxCount 1 ] ;

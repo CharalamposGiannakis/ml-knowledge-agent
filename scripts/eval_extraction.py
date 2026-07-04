@@ -114,6 +114,23 @@ def _pr(correct: int, attempted: int, total_gold: int) -> str:
     return p, r
 
 
+def match_to_gold(fully_resolved: list, gold: dict) -> tuple:
+    """
+    Match fully-resolved proposal records to gold by the
+    (method_canonical, dataset_canonical, metric_canonical) key.
+    Returns (matched: list[(record, gold_entry)], unmatched: list[record]).
+    """
+    matched:   list = []
+    unmatched: list = []
+    for r in fully_resolved:
+        key = (r["method_canonical"], r["dataset_canonical"], r["metric_canonical"])
+        if key in gold:
+            matched.append((r, gold[key]))
+        else:
+            unmatched.append(r)
+    return matched, unmatched
+
+
 # ── scoring ───────────────────────────────────────────────────────────────────
 
 def score(jsonl_path: Path, gold_path: Path, tol: float) -> None:
@@ -127,14 +144,7 @@ def score(jsonl_path: Path, gold_path: Path, tol: float) -> None:
     n_resolved     = len(fully_resolved)
 
     # Match fully-resolved records to gold by (method, dataset, metric) key
-    matched:   list = []
-    unmatched: list = []
-    for r in fully_resolved:
-        key = (r["method_canonical"], r["dataset_canonical"], r["metric_canonical"])
-        if key in gold:
-            matched.append((r, gold[key]))
-        else:
-            unmatched.append(r)
+    matched, unmatched = match_to_gold(fully_resolved, gold)
     n_matched = len(matched)
 
     # Resolution rates (partial) — how many records have each canonical set

@@ -1,0 +1,13 @@
+# Pinned so `pip install -r requirements.txt` reproduces a known-good environment.
+# owlrl intentionally absent — removed per ADR-015 (did not detect the OWL violations
+# it was kept for; replaced by SPARQL invariants in scripts/healthcheck.py).
+
+pymupdf==1.27.2.3
+anthropic==0.111.0
+rdflib==7.6.0
+pyshacl==0.31.0
+requests==2.33.0
+python-dotenv==1.2.2
+
+# dev / test
+pytest==8.3.4

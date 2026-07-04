@@ -40,6 +40,11 @@ SPARQL_ENDPOINT = "http://localhost:3030/mlkg/query"
 MODEL = "claude-opus-4-8"
 RENDER_DPI = 200
 
+# Bump whenever the extraction prompt text (in call_vision_llm) changes meaningfully.
+# Written into the JSONL header and TTL comment so extraction runs are reproducible
+# and diffable against the prompt version that produced them.
+PROMPT_VERSION = "1.0"
+
 # Maps paper_id + locator → known RDF URIs (avoids SPARQL look-up for phase-1 data)
 PAPER_META: dict = {
     "shwartzziv2022": {
@@ -66,7 +71,7 @@ _SCHEMA_TEMPLATE = """\
 {
   "schema_version": "1.0",
   "paper_id": "__PAPER_ID__",
-  "extracted_by": "claude-opus-4-8",
+  "extracted_by": "__EXTRACTED_BY__",
   "source": {
     "locator": "__LOCATOR__",
     "page": __PAGE__,
@@ -191,11 +196,13 @@ def call_vision_llm(
         for t, labels in sorted(by_type.items())
     )
 
+    extracted_by = f"{MODEL}@prompt-{PROMPT_VERSION}"
     schema = (
         _SCHEMA_TEMPLATE
         .replace("__PAPER_ID__", paper_id)
         .replace("__LOCATOR__", locator)
         .replace("__PAGE__", str(page))
+        .replace("__EXTRACTED_BY__", extracted_by)
     )
 
     prompt = f"""Extract every numeric result from the benchmark table on this page.
@@ -223,10 +230,11 @@ INSTRUCTIONS
 OUTPUT STRUCTURE (one entry in "results" per table cell):
 {schema}"""
 
-    print(f"[extract] Calling {MODEL} (vision, {len(png)//1024}KB)  max_tokens=16384...")
+    print(f"[extract] Calling {MODEL} (vision, {len(png)//1024}KB)  max_tokens=16384  temperature=0...")
     response = client.messages.create(
         model=MODEL,
         max_tokens=16384,
+        temperature=0,
         messages=[{
             "role": "user",
             "content": [
@@ -247,8 +255,10 @@ OUTPUT STRUCTURE (one entry in "results" per table cell):
     raw = response.content[0].text.strip()
     print(f"[extract] stop_reason={stop_reason!r}  output_tokens={response.usage.output_tokens}")
 
-    # Always save raw output for debugging / audit
-    raw_path = REPO_ROOT / "proposals" / f"{paper_id}_llm_raw.txt"
+    # Always save raw output for debugging / audit. Timestamped so successive
+    # runs on the same paper/locator don't clobber each other's raw response.
+    run_ts = datetime.now().strftime("%Y%m%dT%H%M%S")
+    raw_path = REPO_ROOT / "proposals" / f"{paper_id}_llm_raw_{run_ts}.txt"
     raw_path.parent.mkdir(parents=True, exist_ok=True)
     raw_path.write_text(raw, encoding="utf-8")
     print(f"[extract] Raw response saved -> {raw_path.relative_to(REPO_ROOT)}")
@@ -268,24 +278,43 @@ OUTPUT STRUCTURE (one entry in "results" per table cell):
     except json.JSONDecodeError as exc:
         sys.exit(f"[extract] JSON parse error: {exc}\n          Raw response -> {raw_path}")
 
+    # Never trust the model's self-reported extracted_by (it may echo a stale
+    # example, or a wrong model name) — derive it from the constants that
+    # actually drove this call.
+    doc["extracted_by"] = extracted_by
+
     print(f"[extract] {len(doc.get('results', []))} results from model")
     return doc
 
 
 # ── 4. normalise ──────────────────────────────────────────────────────────────
 
+_CELL_NUM = r"-?[\d,]+\.?\d*(?:[eE][+\-]?\d+)?%?"
+
+
 def _parse_cell(raw_cell: str) -> tuple:
-    """Parse 'VALUE ± ERROR' string → (value, std_error) or (None, None)."""
-    text = raw_cell.strip().replace("±", "±").replace("+/-", "±")
+    """Parse 'VALUE ± ERROR' string → (value, std_error) or (None, None).
+
+    Accepts negatives (ASCII '-' or typographic Unicode minus U+2212, which
+    PDFs and some models emit instead of hyphen-minus), '%' suffixes, and
+    scientific notation. Cells contaminated with footnote markers, bold
+    markup, or anything else that doesn't match cleanly fail to parse and
+    return (None, None) — callers must not fall back to trusting a value
+    that couldn't be independently verified.
+    """
+    text = raw_cell.strip().replace("−", "-").replace("+/-", "±")
     m = re.match(
-        r"^\s*([\d,]+\.?\d*(?:[eE][+\-]?\d+)?)"
-        r"(?:\s*±\s*([\d,]+\.?\d*(?:[eE][+\-]?\d+)?))?\s*$",
+        rf"^\s*({_CELL_NUM})(?:\s*±\s*({_CELL_NUM}))?\s*$",
         text,
     )
     if not m:
         return None, None
-    val = float(m.group(1).replace(",", ""))
-    err = float(m.group(2).replace(",", "")) if m.group(2) else None
+
+    def _num(s: str) -> float:
+        return float(s.rstrip("%").replace(",", ""))
+
+    val = _num(m.group(1))
+    err = _num(m.group(2)) if m.group(2) else None
     return val, err
 
 
@@ -353,32 +382,47 @@ def _normalise_result(result: dict, vocab: dict) -> dict:
 
     if raw_cell and stated_val is not None:
         parsed_val, parsed_err = _parse_cell(raw_cell)
-        if parsed_val is not None and abs(parsed_val - float(stated_val)) > 1e-3:
+        if parsed_val is None:
+            # raw_cell didn't parse (footnote marker, bold/brace contamination,
+            # unrecognised formatting, ...) — we cannot independently verify
+            # the model's stated value, so flag it rather than trust it blind.
             flags.append({
                 "field": "value",
-                "reason": "value_parse_mismatch",
+                "reason": "value_unverifiable",
                 "question": (
-                    f"Re-parsing '{raw_cell}' -> {parsed_val}, "
-                    f"but value field = {stated_val}."
+                    f"Could not parse raw_cell '{raw_cell}' to verify "
+                    f"value={stated_val}. Confirm or correct manually."
                 ),
-                "options": [f"use_parsed:{parsed_val}", f"keep_stated:{stated_val}"],
+                "options": [f"keep_stated:{stated_val}", "discard"],
                 "requires_human_answer": True,
             })
-        if (
-            parsed_err is not None
-            and stated_err is not None
-            and abs(parsed_err - float(stated_err)) > 1e-3
-        ):
-            flags.append({
-                "field": "std_error",
-                "reason": "value_parse_mismatch",
-                "question": (
-                    f"Re-parsing '{raw_cell}' -> std_error={parsed_err}, "
-                    f"but std_error field = {stated_err}."
-                ),
-                "options": [f"use_parsed:{parsed_err}", f"keep_stated:{stated_err}"],
-                "requires_human_answer": True,
-            })
+        else:
+            if abs(parsed_val - float(stated_val)) > 1e-3:
+                flags.append({
+                    "field": "value",
+                    "reason": "value_parse_mismatch",
+                    "question": (
+                        f"Re-parsing '{raw_cell}' -> {parsed_val}, "
+                        f"but value field = {stated_val}."
+                    ),
+                    "options": [f"use_parsed:{parsed_val}", f"keep_stated:{stated_val}"],
+                    "requires_human_answer": True,
+                })
+            if (
+                parsed_err is not None
+                and stated_err is not None
+                and abs(parsed_err - float(stated_err)) > 1e-3
+            ):
+                flags.append({
+                    "field": "std_error",
+                    "reason": "value_parse_mismatch",
+                    "question": (
+                        f"Re-parsing '{raw_cell}' -> std_error={parsed_err}, "
+                        f"but std_error field = {stated_err}."
+                    ),
+                    "options": [f"use_parsed:{parsed_err}", f"keep_stated:{stated_err}"],
+                    "requires_human_answer": True,
+                })
 
     result["flags"] = flags
     return result
@@ -429,6 +473,7 @@ def emit_ttl(doc: dict) -> str:
         f"# Proposed triples — {paper_id} · {locator} · p.{source['page']}",
         f"# Extracted: {datetime.now().isoformat(timespec='seconds')}",
         f"# Model: {doc.get('extracted_by', MODEL)}",
+        f"# Prompt version: {PROMPT_VERSION}",
         f"# !! REVIEW REQUIRED before loading to Fuseki (CLAUDE.md rule 1) !!",
         "",
         f"# Source location (idempotent if already in graph)",
@@ -498,6 +543,7 @@ def write_proposals(doc: dict) -> tuple:
     jsonl_path = out_dir / f"{paper_id}.jsonl"
     with jsonl_path.open("w", encoding="utf-8") as fh:
         header = {k: v for k, v in doc.items() if k != "results"}
+        header["prompt_version"] = PROMPT_VERSION
         header["total_results"]  = total
         header["clean_results"]  = n_clean
         header["flagged_results"] = n_flagged

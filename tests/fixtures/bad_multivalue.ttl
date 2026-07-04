@@ -1,0 +1,28 @@
+# Adversarial fixture (c): a single BenchmarkResult IRI carrying two different
+# :hasValue literals. :hasValue is owl:FunctionalProperty (documented, not
+# enforced under OWL's open-world semantics) — this fixture exercises the
+# SPARQL invariant (healthcheck.py check H) that catches it post-load, since
+# the retired owlrl-based Layer 3 did not (see ADR-015).
+@prefix :    <http://mlkg.local/ontology#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:paper_test_c a :Paper ;
+    :title "Test Paper C" ;
+    :year 2024 .
+
+:src_test_c a :SourceLocation ;
+    :fromPaper :paper_test_c ;
+    :locator "Table 1" ;
+    :page 1 .
+
+:ds_test_c a :Dataset ; rdfs:label "Test Dataset C" .
+
+:r_bad_multivalue a :BenchmarkResult ;
+    :reportsMethod :XGBoost ;
+    :onDataset :ds_test_c ;
+    :usesMetric :CrossEntropyLoss ;
+    :hasValue 1.0 ;
+    :hasValue 2.0 ;
+    :hasSource :src_test_c ;
+    :conditionsComplete false .

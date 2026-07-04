@@ -36,13 +36,20 @@ def main() -> None:
     # :optimizationDirection :LowerIsBetter) are both visible to the shapes.
     # This mirrors the combined graph state that Fuseki holds after both the
     # ontology and the data file have been loaded.
+    #
+    # inference="none" (not "rdfs"): our entities are explicitly typed, so
+    # sh:class checks should see asserted types only. RDFS closure over
+    # rdfs:range (e.g. :onDataset rdfs:range :Dataset) would infer every
+    # object of :onDataset as a :Dataset regardless of its real type,
+    # making sh:class checks vacuous (a Method plugged into :onDataset
+    # would silently pass).
     data_graph = Graph().parse(str(ONTOLOGY_FILE), format="turtle")
     data_graph += Graph().parse(str(data_path), format="turtle")
 
     conforms, _, results_text = pyshacl.validate(
         data_graph,
         shacl_graph=shapes_graph,
-        inference="rdfs",
+        inference="none",
         abort_on_first=False,
         allow_infos=False,
         allow_warnings=False,

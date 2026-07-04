@@ -57,6 +57,40 @@ CHECKS = [
         "mode": "value",
         "expected": 80.64,
     },
+    {
+        # Layer 3 (ADR-015 revised): owlrl's OWL RL closure did not detect
+        # disjoint-class violations in practice (verified during the audit —
+        # it printed CONSISTENT over a graph with a cross-typed individual).
+        # These SPARQL invariants check the same asserted-type facts directly.
+        "id": "E",
+        "desc": "individuals cross-typed Method/Dataset (expect 0 rows)",
+        "query": _P + "SELECT ?x WHERE { ?x a :Method, :Dataset }",
+        "mode": "zero_rows",
+    },
+    {
+        "id": "F",
+        "desc": "individuals cross-typed Method/Metric (expect 0 rows)",
+        "query": _P + "SELECT ?x WHERE { ?x a :Method, :Metric }",
+        "mode": "zero_rows",
+    },
+    {
+        "id": "G",
+        "desc": "individuals cross-typed Dataset/Metric (expect 0 rows)",
+        "query": _P + "SELECT ?x WHERE { ?x a :Dataset, :Metric }",
+        "mode": "zero_rows",
+    },
+    {
+        # :hasValue is owl:FunctionalProperty (documented, not enforced by OWL's
+        # open-world semantics); owlrl did not flag a functional-property
+        # contradiction either. SHACL's sh:maxCount 1 also guards this at the
+        # pre-load gate — this is a second, independent post-load check.
+        "id": "H",
+        "desc": "BenchmarkResults with two different :hasValue literals (expect 0 rows)",
+        "query": _P + (
+            "SELECT ?r WHERE { ?r :hasValue ?v1 ; :hasValue ?v2 . FILTER(?v1 != ?v2) }"
+        ),
+        "mode": "zero_rows",
+    },
 ]
 
 
@@ -71,7 +105,19 @@ def _sparql(query: str) -> list[dict]:
     return resp.json()["results"]["bindings"]
 
 
+def _fuseki_reachable() -> bool:
+    try:
+        resp = requests.get(f"{FUSEKI_URL}/$/ping", timeout=5)
+        return resp.ok
+    except requests.RequestException:
+        return False
+
+
 def main() -> None:
+    if not _fuseki_reachable():
+        print(f"UNREACHABLE: Fuseki did not respond at {FUSEKI_URL} — is 'docker compose up -d' running?")
+        sys.exit(2)
+
     all_pass = True
     for chk in CHECKS:
         try:

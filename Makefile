@@ -1,4 +1,4 @@
-.PHONY: help up down init query logs reset validate load-data healthcheck consistency
+.PHONY: help up down init query logs reset validate load-data healthcheck
 
 help:           ## show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -29,8 +29,5 @@ validate:       ## SHACL gate: validate FILE against shapes (e.g. make validate 
 load-data: validate  ## SHACL gate + Fuseki POST (e.g. make load-data FILE=data/foo.ttl)
 	bash scripts/load_data.sh $(FILE)
 
-healthcheck:    ## Layer-2 SPARQL invariant checks against live Fuseki
+healthcheck:    ## Layer-2/3 SPARQL invariant checks against live Fuseki (ADR-015)
 	python3 scripts/healthcheck.py
-
-consistency:    ## Layer-3 transient OWL consistency check (periodic; ADR-015)
-	python3 scripts/consistency.py

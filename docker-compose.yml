@@ -1,19 +1,23 @@
 services:
   fuseki:
-    # Community image with the Fuseki UI + simple ADMIN_PASSWORD interface.
-    # NOTE: verify a current tag against Docker Hub before first run — Jena is on 5.x.
-    # Alternatives if this tag is unavailable: daschswiss/apache-jena-fuseki:<5.x>,
-    # secoresearch/fuseki, or the official jena-fuseki-docker package.
-    image: stain/jena-fuseki:latest
+    # Pinned, actively-maintained Jena 5.x image (verified live on Docker Hub;
+    # stain/jena-fuseki:latest was an unpinned, years-dormant Jena 3.x-era image).
+    image: daschswiss/apache-jena-fuseki:5.5.0-3
     container_name: mlkg-fuseki
     ports:
       - "3030:3030"
     environment:
-      # Read from .env (see .env.example). Falls back to "admin" for local dev.
-      - ADMIN_PASSWORD=${FUSEKI_ADMIN_PASSWORD:-admin}
+      # Required — no fallback (fail loudly, like init_fuseki.sh). Copy
+      # .env.example to .env and set a real password before `docker compose up`.
+      - ADMIN_PASSWORD=${FUSEKI_ADMIN_PASSWORD:?FUSEKI_ADMIN_PASSWORD must be set in .env}
     volumes:
       # FUSEKI_BASE — datasets persist here across container restarts.
       - fuseki-data:/fuseki
+      # Override the image's stock shiro.ini template (FUSEKI_HOME, not the
+      # FUSEKI_BASE volume): the stock template denies anonymous SPARQL
+      # query/read, which this project's scripts (and the future read-only
+      # query agent) rely on. See fuseki-shiro.ini for what differs and why.
+      - ./fuseki-shiro.ini:/jena-fuseki/shiro.ini:ro
     restart: unless-stopped
 
 volumes:

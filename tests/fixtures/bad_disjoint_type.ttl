@@ -1,0 +1,25 @@
+# Adversarial fixture (b): :onDataset points at :XGBoost, which is asserted
+# :Method (and Method/Dataset are owl:AllDisjointClasses). With inference off,
+# :XGBoost carries no :Dataset type, so the SHACL gate MUST reject this via the
+# sh:class :Dataset check on :onDataset. (With rdfs inference on, this used to
+# pass vacuously — rdfs:range :onDataset :Dataset would infer :XGBoost a
+# :Dataset just from appearing as the object of :onDataset. That was the bug.)
+@prefix :    <http://mlkg.local/ontology#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:paper_test_b a :Paper ;
+    :title "Test Paper B" ;
+    :year 2024 .
+
+:src_test_b a :SourceLocation ;
+    :fromPaper :paper_test_b ;
+    :locator "Table 1" ;
+    :page 1 .
+
+:r_bad_disjoint_type a :BenchmarkResult ;
+    :reportsMethod :XGBoost ;
+    :onDataset :XGBoost ;
+    :usesMetric :CrossEntropyLoss ;
+    :hasValue 1.0 ;
+    :hasSource :src_test_b ;
+    :conditionsComplete false .
