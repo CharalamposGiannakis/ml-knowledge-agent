@@ -30,6 +30,9 @@ table/figure, page). If the graph lacks the answer, it says so. No fabrication.
    accept-and-flag if partial — never silently drop them, never hard-reject for being incomplete.
 6. **No .ttl enters Fuseki without a passing SHACL gate.** `scripts/load_data.sh` enforces this
    automatically via `scripts/validate_shapes.py`. Never bypass or skip the gate.
+7. **Proportionate strictness (ADR-016).** Enforce only the minimal load-bearing invariants; keep
+   schema and store access permissive; add strictness only on a demonstrated failure captured as
+   a fixture. Do not reflexively tighten the ontology or lock down reads.
 
 ## Model usage
 - Design, ontology, extraction-prompt work, runtime extraction → **Opus 4.8**.
@@ -39,6 +42,8 @@ table/figure, page). If the graph lacks the answer, it says so. No fabrication.
 - Python: FastAPI backend, PyMuPDF for PDFs, ChromaDB for vectors.
 - Keep the repo free of empty folders. Add a folder only when there's code to put in it.
 - Each session: update `STATUS.md` (Done / In progress / Next actions) before stopping.
+- `docs/fable.md` is an ARCHIVED external audit (2026-07-03), not a source of truth or task
+  list — do not action it directly; authoritative state is STATUS.md + docs/DECISIONS.md.
 
 ## How to run
 Prereqs: Docker + Docker Compose. (No host Java needed — the image bundles it.)
@@ -53,8 +58,7 @@ Prereqs: Docker + Docker Compose. (No host Java needed — the image bundles it.
 
     # Health harness
     python3 scripts/validate_shapes.py data/<file>.ttl  # SHACL gate alone (pre-load check)
-    python3 scripts/healthcheck.py                       # Layer-2 SPARQL invariants (post-load)
-    python3 scripts/consistency.py                       # Layer-3 OWL consistency (periodic)
+    python3 scripts/healthcheck.py                       # SPARQL invariants, incl. logical checks (post-load)
 
 **Note:** `make init` will fail loudly if `FUSEKI_ADMIN_PASSWORD` is not set in `.env` — this is
 intentional. Copy `.env.example` to `.env` and set a real password first.

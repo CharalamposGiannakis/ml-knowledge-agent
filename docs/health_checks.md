@@ -1,14 +1,25 @@
 # Ontology / graph health checks
 
-Four layers. Run layers 1-2 on every paper add; layer 3 when the ontology changes
-or periodically; layer 4 is the existing eval set.
+Three layers. Run layers 1-2 on every paper add; layer 3 is the existing eval set.
 
 ## Layer 1 — SHACL (PRE-LOAD GATE, structural)
-Validate the candidate `.ttl` against `ontology/shapes.ttl` (pyshacl). If it does not
-conform, DO NOT load. Enforces: required core (method/dataset/metric/value/source),
-referential integrity (sh:class), every Metric has a direction, conditionsComplete present.
+Validate the candidate `.ttl` against `ontology/shapes.ttl` (pyshacl), with **inference
+disabled** (`inference="none"`). If it does not conform, DO NOT load. Enforces: required
+core (method/dataset/metric/value/source), referential integrity via **asserted types**
+(sh:class — every entity must already be typed :Method/:Dataset/:Metric/etc., not
+inferred), rdfs:label present on Method/Dataset (catches dangling/typo'd URIs), every
+Metric has a direction, conditionsComplete present.
+
+**Why inference is off.** RDFS closure over `rdfs:range` (e.g. `:onDataset rdfs:range
+:Dataset`) infers every object of `:onDataset` as a `:Dataset` regardless of its real
+type — this makes `sh:class` checks vacuous (a `:Method` plugged into `:onDataset`
+would silently pass). Our entities are explicitly typed, so asserted-type checking is
+what we want.
 
 ## Layer 2 — SPARQL invariants (POST-LOAD, run against Fuseki)
+Also includes the logical invariants that used to be labelled "Layer 3" (see below) —
+cross-typing and multi-value checks now live here as ordinary post-load SPARQL, run by
+`scripts/healthcheck.py`.
 Each query must return ZERO rows unless noted. Non-empty = FAIL.
 
 ```sparql
@@ -38,16 +49,39 @@ SELECT ?v WHERE { ?r :reportsMethod :XGBoost ; :onDataset :ds_gesture ;
   :usesMetric :CrossEntropyLoss ; :hasValue ?v }
 ```
 ```sparql
-# E. (sanity, not a gate) family closure WITHOUT a reasoner, via property path
+# E. individuals cross-typed Method/Dataset  (expect 0; disjoint-class guard)
+PREFIX : <http://mlkg.local/ontology#>
+SELECT ?x WHERE { ?x a :Method, :Dataset }
+```
+```sparql
+# F. individuals cross-typed Method/Metric  (expect 0; disjoint-class guard)
+PREFIX : <http://mlkg.local/ontology#>
+SELECT ?x WHERE { ?x a :Method, :Metric }
+```
+```sparql
+# G. individuals cross-typed Dataset/Metric  (expect 0; disjoint-class guard)
+PREFIX : <http://mlkg.local/ontology#>
+SELECT ?x WHERE { ?x a :Dataset, :Metric }
+```
+```sparql
+# H. BenchmarkResults with two different :hasValue literals  (expect 0; functional-property guard)
+PREFIX : <http://mlkg.local/ontology#>
+SELECT ?r WHERE { ?r :hasValue ?v1 ; :hasValue ?v2 . FILTER(?v1 != ?v2) }
+```
+```sparql
+# I. (sanity, not a gate) family closure WITHOUT a reasoner, via property path
 PREFIX : <http://mlkg.local/ontology#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?label WHERE { ?m :inFamily/:subFamilyOf* :TreeEnsemble ; rdfs:label ?label }
 ```
 
-## Layer 3 — OWL consistency (PERIODIC, transient — DO NOT MATERIALIZE)
-Run an OWL reasoner over ontology+data; assert the model is consistent; discard the
-inferred graph. Catches disjoint-class violations, functional-property contradictions.
-Never write inferred triples into the asserted graph (ADR-015).
+**On the retired OWL-reasoner layer.** An earlier version of this harness ran `owlrl`'s
+OWL RL closure transiently (`scripts/consistency.py`) to catch disjoint-class and
+functional-property violations. Verified during the ADR-015 audit: it did **not** catch
+either — it printed `CONSISTENT` over graphs with a cross-typed individual and over a
+`BenchmarkResult` with two different `:hasValue` literals. `owlrl` has been removed as a
+dependency; checks E-H above are the direct replacement, expressed as plain SPARQL
+invariants rather than reasoner output.
 
-## Layer 4 — Eval set (semantic)
+## Layer 3 — Eval set (semantic)
 `eval/eval_set.jsonl` Q -> expected source. Retrieval + citation accuracy (ADR-006).

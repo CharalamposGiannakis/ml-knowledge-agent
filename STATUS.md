@@ -8,7 +8,12 @@
 
 ## Where we are
 **Phase:** Phase 2 closed — 88 BenchmarkResults live in Fuseki under deterministic IRI scheme.
-**Date of last update:** 2026-06-22
+Acted on an external audit (`docs/fable.md`) of the health harness + extraction pipeline;
+mechanical fixes only. Then diagnosed and fixed a Fuseki connection-loop regression caused by
+the audit's own image-pin change (see below). Verified end-to-end: 88 BenchmarkResults live,
+all 8 healthcheck invariants green. ADR-016 (proportionate strictness) recorded. This work,
+plus this documentation sync, is committed.
+**Date of last update:** 2026-07-04
 
 ADR-014 decided and implemented: emit_ttl now mints IRIs as
   :r_{paper_id}__{method_local}__{dataset_local}__{metric_local}
@@ -24,7 +29,7 @@ Scorer: 48/48 gold recall, 100% P/R all fields on adjudicable pairs. 40 beyond-g
 correctly labelled (5 unseen datasets) and excluded from precision denominator.
 
 ## Done
-- [x] Continuity kit + decisions (ADR-001..014).
+- [x] Continuity kit + decisions (ADR-001..016).
 - [x] Ontology written, validated, extended for Phase 1 vocab; live load confirmed.
 - [x] Phase 0/1 live slice closed (Fuseki + ontology + 48 results + sourced Gesture query).
 - [x] Phase 2 plan + tracked difficulties in `docs/EXTRACTION_NOTES.md`.
@@ -44,14 +49,74 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
 - [x] ADR-015: ontology health harness built (SHACL gate + SPARQL invariants + OWL consistency).
       scripts/validate_shapes.py, healthcheck.py, consistency.py; load_data.sh gates on SHACL;
       Makefile targets validate/load-data/healthcheck/consistency added.
+- [x] Audit response (this session, ADR-015 revised): SHACL gate had `inference="rdfs"`, which
+      made every `sh:class` check vacuous (RDFS closure over `rdfs:range` invents the type the
+      shape then checks for) — confirmed empirically two ways it silently passed bad data
+      (dangling dataset URI, a Method plugged into `:onDataset`). Fixed to `inference="none"`;
+      added DatasetShape/MethodShape (require rdfs:label). Layer 3's `owlrl` consistency check
+      was verified to report CONSISTENT over both a cross-typed individual and a multi-valued
+      `:hasValue` — removed `scripts/consistency.py` and the `owlrl` dependency entirely;
+      replaced with plain SPARQL invariants (checks E-H) in `healthcheck.py`. Added `tests/`
+      (38 tests: 3 adversarial SHACL fixtures, the new invariants, `phase2_extract.py`'s pure
+      functions, the scorer's key-matching) and a pinned `requirements.txt`. Extraction hygiene:
+      `temperature=0`, `PROMPT_VERSION` constant, `extracted_by` derived from `MODEL` (was
+      copied from the schema template), timestamped raw-output files, fixed a no-op
+      `.replace("±","±")`, extended `_parse_cell` for negatives/%/unicode minus, added a
+      `value_unverifiable` flag when a cell can't be parsed (previously trusted blind). Hygiene:
+      pinned the Fuseki image (`daschswiss/apache-jena-fuseki:5.5.0-3`, was unpinned `:latest`
+      on a dormant Jena 3.x-era image), removed `admin` password fallbacks, added `.claude/` to
+      `.gitignore`, renamed `env.example` -> `.env.example` to match the documented setup
+      command, added a "GOLD — never load" banner to `data/shwartzziv2022.ttl`. Fuseki admin
+      password (was committed in `.claude/settings.local.json`): **RESOLVED** — rotated by the
+      user. Full findings in `docs/fable.md`; deliberately out of scope (needs design, not
+      mechanics): condition-hash IRI migration, PAPER_META de-hardcoding, value-scale ADR,
+      review-decision log.
+- [x] Fixed the Fuseki connection-loop regression the image pin (above) introduced. Root causes,
+      in the order actually found: (1) the image pin edited docker-compose.yml but the running
+      container was never recreated — it kept serving on `stain/jena-fuseki` 2 weeks stale, so
+      anything expecting the new image/behavior was talking to the old one; a plain `docker
+      compose up -d` does not recreate a running container on a compose-file edit alone. (2) The
+      admin password in `.env` had in fact never been rotated (still the same value leaked in
+      `.claude/settings.local.json` last session) — confirmed by comparing values programmatically
+      without printing either. (3) A real, independent regression: `daschswiss/apache-jena-fuseki`'s
+      stock `shiro.ini` denies anonymous SPARQL query (`/** = authcBasic,user[admin]` catches
+      `/mlkg/query`), unlike whatever the old `stain` image was configured with — broke
+      `scripts/query.py`, `healthcheck.py`, and the trailing queries in `init_fuseki.sh`/
+      `load_data.sh`, all of which hit `/query` unauthenticated by design (the future read-only
+      query agent must not need admin credentials for a SELECT). Fixed by mounting a custom
+      `fuseki-shiro.ini` over the image's stock template (`$FUSEKI_HOME/shiro.ini`, not the
+      `$FUSEKI_BASE` volume) opening `/*/query` and `/*/sparql` to anon while keeping every
+      write/admin path authenticated. Hit one self-inflicted snag along the way: the custom
+      file's own explanatory comments contained the literal substring the entrypoint's
+      placeholder sanity check greps the whole file for, causing a real crash-loop of its own
+      until reworded. `init_fuseki.sh`/`load_data.sh` now decode HTTP status codes explicitly
+      (401 fails fast with a no-retry message pointing at `FUSEKI_ADMIN_PASSWORD`; 404 on the
+      dataset either creates it (`init_fuseki.sh`) or points at `init_fuseki.sh` (`load_data.sh`);
+      connection-refused stays a single bounded wait, already the case for the ping loop).
+      Verified end-to-end post-fix: unauthenticated SELECT on `/mlkg/query` -> 200, unauthenticated
+      GSP write -> 401, `init_fuseki.sh` -> `load_data.sh data/shwartzziv2022_full.ttl` (SHACL
+      gate passes) -> `healthcheck.py` all green, COUNT(:BenchmarkResult)=88. Fuseki admin
+      password: **RESOLVED** — rotated by the user.
+- [x] ADR-016 recorded (proportionate strictness: minimal enforced invariants, permissive schema
+      + read-open/write-gated store, tighten only on demonstrated failure).
 
 ## Next actions (in order)
-1. Add second paper to the corpus; run full Phase 2 pipeline (render -> vision -> normalise -> review).
-2. Model conditions properly for Shwartz-Ziv (seen/unseen split) -- :conditionsComplete is false for all 88.
-3. Build the Phase 3 query agent (SPARQL dispatch from natural language, FastAPI endpoint).
+1. Condition model + IRI migration: model seen/unseen for Shwartz-Ziv with the MINIMAL
+   condition shape (ADR-016); extend the IRI key with a condition hash so the split can't
+   collide into one multi-valued node; regenerate + reload the 88. Design with Opus in
+   chat, then Claude Code implements.
+2. Build the query agent (Phase 3/4 vertical slice): natural-language question -> SPARQL ->
+   sourced answer, on the now-stable IRI scheme. Design with Opus, then implement. Priority:
+   a bigger graph you can't query is the empty-cathedral failure (ADR-007, audit).
+3. Add paper #2 through the honest gate; measure via sampled back-verification + a persisted
+   review-decision log.
 
 ## Open questions / parking lot
 - Paper year (ADR-011 rule) and dataset dedup when a dataset first recurs in a new paper.
+- Value-scale policy (audit M2): stored-as-printed ×100 factors will silently miscompare
+  against an unscaled paper #2 — needs an ADR before the next paper lands.
+- Persisted review-decision log (audit H3/ADR-004): no accept/edit/reject log exists yet;
+  "measured, not asserted" reliability only holds for paper #1's hand-made gold.
 
 ## Known issues / risks
 - Conditions still not modeled for Shwartz-Ziv (seen/unseen) -- flagged :conditionsComplete false.

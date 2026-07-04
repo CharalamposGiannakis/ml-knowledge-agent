@@ -84,6 +84,18 @@ The corpus starts small — a few dozen carefully chosen papers — and grows on
 
 ---
 
+## Status Today vs. Roadmap
+
+The sections above describe the target system. What's actually built and live today: the
+OWL/RDF ontology, the Apache Jena Fuseki graph store, the SHACL pre-load gate + SPARQL
+invariant health harness, and a working (manually-invoked) extraction pipeline — one paper
+(Shwartz-Ziv & Armon, 2022) reviewed into 88 `BenchmarkResult` records. The query agent,
+the semantic/vector layer (ChromaDB), the FastAPI backend, and the chat interface described
+above are roadmap, not yet built. `STATUS.md` and `docs/DECISIONS.md` are the authoritative,
+current state; this README is the destination, not a status report.
+
+---
+
 ## Stack
 
 | Component | Technology |

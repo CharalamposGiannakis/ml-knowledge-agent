@@ -148,21 +148,72 @@ gold file — conflates hand-reviewed and machine-extracted provenance.
 
 ### ADR-015 — Reasoning & inference: validate and query, don't materialise
 **Decision.** The asserted graph holds **only paper-sourced triples**. We do NOT materialise
-OWL/RDFS-inferred triples into it. Inference is used two ways only: (1) an OWL reasoner run
-**transiently** for a consistency check, its output discarded; (2) derived facts we want at query
-time (e.g. method-family closure) obtained via **SPARQL property paths** (`:inFamily/:subFamilyOf*`),
-not stored. Structural enforcement (required core, referential integrity, metric-has-direction) is
-done by **SHACL as a pre-load gate**, not by OWL entailment.
+OWL/RDFS-inferred triples into it, and we do not run inference during structural validation.
+Enforcement is two-layered: (1) **SHACL as a pre-load gate**, run with `inference="none"` so
+`sh:class` checks see **asserted types only**; (2) a **SPARQL invariant pack run post-load**
+against Fuseki, covering both referential/uniqueness checks (metric-has-direction, no dangling
+method, no duplicate results) and the logical checks that a reasoner would otherwise be asked for
+(disjoint-class cross-typing, functional-property multi-values). Derived facts we want at query
+time (e.g. method-family closure) are obtained via **SPARQL property paths**
+(`:inFamily/:subFamilyOf*`), not stored.
 **Why.** Provenance is the core invariant — every stored triple must trace to a paper. Inferred
 triples have no paper source; mixing them into the asserted graph blurs "a paper said X" vs "a
 reasoner derived X" and breaks the agent's no-source-no-claim guarantee. SPARQL paths give the
 hierarchy convenience without storage. SHACL gives the closed-world rejection OWL's open-world
-semantics cannot.
+semantics cannot — but only if inference is off; RDFS closure over `rdfs:range` (e.g. `:onDataset
+rdfs:range :Dataset`) infers every object of `:onDataset` as a `:Dataset` regardless of its real
+type, making `sh:class` checks vacuous.
+**Revised (this audit): the OWL-reasoner layer is gone, not just transient.** The original
+decision ran `owlrl`'s OWL RL closure transiently for a periodic consistency check
+(`scripts/consistency.py`), on the theory that it would catch disjoint-class and
+functional-property violations SHACL doesn't reach. Verified empirically: it did not. Run against
+a graph with an individual typed both `:Method` and `:Dataset`, and against a `BenchmarkResult`
+carrying two different `:hasValue` literals, `owlrl`'s closure printed `CONSISTENT` for both —
+`owl:AllDisjointClasses` and `owl:FunctionalProperty` violations do not manifest as `owl:Nothing`
+membership under RL semantics the way the original design assumed. Keeping a check that reports
+"consistent" over broken states is worse than no check. `scripts/consistency.py` and the `owlrl`
+dependency are removed; the violations it was meant to catch are now plain SPARQL `SELECT` queries
+(checks E-H in `docs/health_checks.md`) run in the same post-load pass as the other invariants.
 **If materialised inference is ever needed** (performance), it goes in a SEPARATE named graph
 (`:inferred`), never the default/asserted graph, so the agent can include or exclude it explicitly.
 **Rejected.** Always-on Fuseki inference model over the base graph (pollutes provenance, premature
 at this scale). Relying on OWL cardinality restrictions for enforcement (open-world; documents but
-never rejects). Storing reasoner output alongside asserted facts.
+never rejects). Storing reasoner output alongside asserted facts. Keeping the OWL reasoner layer
+for the checks it silently failed to perform.
 
-**Test layers in force:** (1) SHACL pre-load gate, (2) SPARQL invariant pack post-load,
-(3) periodic transient OWL consistency check, (4) eval set (ADR-006). See `docs/health_checks.md`.
+**Test layers in force:** (1) SHACL pre-load gate (inference off), (2) SPARQL invariant pack
+post-load (referential integrity + logical invariants, formerly split as "Layer 2"/"Layer 3"),
+(3) eval set (ADR-006). See `docs/health_checks.md`.
+
+### ADR-016 — Proportionate strictness: minimal enforced invariants, permissive elsewhere, tighten only on demonstrated failure
+**Decision.** Strictness is added only where a real invariant of the project's promise lives, and
+only after a concrete failure demonstrates the need. Everything else stays permissive and evolvable.
+Two instances in force:
+1. **Schema / validation.** The *enforced* set is minimal and load-bearing: every BenchmarkResult
+   has a source, references resolve to asserted types, every Metric has a direction, the required
+   core is present, IRIs are unique (SHACL pre-load gate + SPARQL invariants, ADR-015). Everything
+   beyond that — OWL disjointness/cardinality axioms, controlled vocabularies, the reified
+   condition apparatus (num/text/min/max/ConditionType) — is documentation and future capacity,
+   not a gate. Constraints are not added speculatively; one earns its place only when a real paper
+   produces a real failure, captured as an adversarial fixture (like the three in `tests/`) before
+   the shape/invariant is tightened.
+2. **Store access.** Fuseki runs read-open, write-gated: anonymous SPARQL SELECT (`/*/query`,
+   `/*/sparql`), authenticated writes/admin. This is least-privilege aimed at the component that
+   will carry risk — the future read-only query agent must never hold write credentials, so a
+   prompt-injected or buggy agent cannot be steered into a SPARQL UPDATE. The trigger to add a
+   read credential is a demonstrated one: exposure of the store beyond localhost.
+**Why.** The audit (`docs/fable.md`) exposed the failure mode this prevents: elaborate strictness
+that enforced nothing (owlrl caught no violations; OWL cardinality restrictions were open-world
+documentation) next to a gate that passed dangling references — over-specified in schema,
+under-enforced at the gate, the worst of both. The image-pin incident showed the same reflex
+operationally: locking down reads "to be safe" broke a working system against a threat that did
+not exist. Proportionate strictness is the corrective: enforce the promise, stay loose elsewhere,
+and let demonstrated failures — a red fixture, an actual exposure — earn each new constraint. A
+permissive schema is safe to evolve precisely because the load-bearing gate now holds (ADR-015).
+**Consequence for open work.** Where earlier ADRs imply broad up-front strictness, this is the
+governing meta-rule: they bind for the minimal enforced set and are advisory beyond it. The
+condition model (next task) is built to the minimal shape that makes IRIs unique and lets the
+agent caveat — not the full apparatus — until a real query proves more is needed.
+**Rejected.** Strict-everywhere-up-front (constraints for papers/threats not yet met; brittle, slow,
+often illusory). Relax-everything (unsafe without the minimal gate). Read-authenticated access
+(puts write credentials in the read-only agent's hands; inverts the threat model).
