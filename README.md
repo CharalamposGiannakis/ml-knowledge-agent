@@ -40,7 +40,7 @@ This is not a pipeline that ingests everything it can find. It is a curated know
 
 **Conditions are not optional metadata.** The finding that Random Forest beats XGBoost is meaningless without knowing the dataset size, the feature types, the evaluation metric, and the experimental setup. The ontology captures conditions whenever present; a result with partial conditions is accepted with a flag so the agent can caveat its answer, rather than being rejected outright and losing the data. See `docs/DESIGN.md` for decisions in force (ADR-003).
 
-**The agent reasons over structure, not text.** The LLM in this system is not asked to read papers and answer from memory. It is asked to translate questions into queries and to narrate structured results in plain language. The knowledge lives in the graph. The model handles language.
+**The model interprets; code asserts.** The LLM in this system is not asked to read papers and answer from memory. It interprets the question — resolving names to entities, choosing which structured query to run, filling its slots — and that is *all* it does. It never writes the query (ADR-018), never writes the stored data (ADR-009), and never writes the asserted answer sentence, which is rendered deterministically by code from the verified result (ADR-019). Because the model authors none of the formal artifacts, an answer cannot contain a fact that is not in the graph. The knowledge lives in the graph; the model only handles language *going in*.
 
 ---
 
@@ -91,8 +91,9 @@ OWL/RDF ontology, the Apache Jena Fuseki graph store, the SHACL pre-load gate + 
 invariant health harness, a working (manually-invoked) extraction pipeline — one paper
 (Shwartz-Ziv & Armon, 2022) reviewed into 88 `BenchmarkResult` records — and the query agent
 (`agent/` package): natural-language question -> entity resolution -> one of 4 parameterised
-SPARQL operations -> guarded, sourced narration, available via CLI and a FastAPI backend
-(`POST /ask`), with an 18/18 retrieval eval. The semantic/vector layer (ChromaDB) and the
+SPARQL operations -> a deterministically-rendered, sourced answer (ADR-019: the model never
+writes the answer sentence), available via CLI and a FastAPI backend (`POST /ask`), with a
+claim-local eval. The semantic/vector layer (ChromaDB) and the
 chat interface described above are roadmap, not yet built. `STATUS.md` and
 `docs/DECISIONS.md` are the authoritative, current state; this README is the destination,
 not a status report.

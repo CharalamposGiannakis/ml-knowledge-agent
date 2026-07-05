@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
-"""Eval runner: question -> expected outcome + expected source (ADR-006).
+"""Eval runner: question -> expected outcome + expected source (ADR-006/019).
 
 Runs every item in eval/eval_set.jsonl through the real agent loop (live
-Fuseki + live LLM planner; deterministic template narration, since scoring is
-on the structured Answer, not prose) and reports:
+Fuseki + live LLM planner). Since ADR-019 the default answer is rendered
+deterministically by code, so the eval scores THE SAME TEXT the user sees, and
+the checks are claim-local (red-team F5):
 
-- retrieval accuracy: status + winner/value/rank expectations matched
-- citation accuracy: expected locator+page present in the answer's citations
-  (over items that expect an answered status with a source)
+- retrieval accuracy: status + winner/value/rank expectations matched, where
+  the expected value is checked against the answer's *headline* value (the
+  queried/winning entity's), not any number anywhere in the payload;
+- citation accuracy: the expected "<locator>, p.<page>" must appear in the
+  rendered answer text (tying it to the claim), not merely somewhere in the
+  payload's citation set.
 
 Usage:
     python eval/run_eval.py            # all items
@@ -43,17 +47,26 @@ def _winners(shaped: dict) -> set:
     return set()
 
 
-def _values(obj, acc: list) -> list:
-    if isinstance(obj, dict):
-        for k, v in obj.items():
-            if k == "value" and isinstance(v, (int, float)):
-                acc.append(float(v))
+def _claim_values(shaped: dict) -> list:
+    """The *headline* value(s) an answer asserts — claim-local (F5). Not every
+    number in the payload (which includes losers, margins, std errors, ranks,
+    and citation digits), so an expected value can be tied to the entity the
+    question is about rather than matched anywhere it happens to appear."""
+    kind = shaped.get("kind")
+    if kind == "lookup_result":
+        return [r["value"] for r in shaped.get("results", [])]
+    if kind == "best_on_dataset":
+        return [r["best"]["value"] for r in shaped.get("rankings", [])]
+    if kind == "compare_pair":
+        out = []
+        for c in shaped.get("comparisons", []):
+            if c["winner"] is None:  # tie: both sides are the claim
+                out += [c["a"]["value"], c["b"]["value"]]
             else:
-                _values(v, acc)
-    elif isinstance(obj, list):
-        for v in obj:
-            _values(v, acc)
-    return acc
+                side = c["a"] if c["a"]["method"] == c["winner"] else c["b"]
+                out.append(side["value"])
+        return out
+    return []
 
 
 def check_retrieval(answer, expect: dict) -> list:
@@ -74,9 +87,10 @@ def check_retrieval(answer, expect: dict) -> list:
         if want not in got:
             fails.append(f"winner {want!r} not in {sorted(got) or ['<none>']}")
     if "value" in expect:
-        got = _values(answer.shaped, [])
+        got = _claim_values(answer.shaped)
         if not any(abs(v - expect["value"]) < 1e-6 for v in got):
-            fails.append(f"value {expect['value']} not among returned values")
+            fails.append(f"value {expect['value']} is not the answer's headline "
+                         f"value {got or ['<none>']}")
     for key, path in (("seen_mean_rank", "seen"), ("unseen_mean_rank", "unseen")):
         if key in expect:
             got = (answer.shaped.get(path) or {}).get("mean_rank")
@@ -86,9 +100,12 @@ def check_retrieval(answer, expect: dict) -> list:
 
 
 def check_citation(answer, expected_source: dict) -> list:
+    # Claim-local (F5): the citation must appear in the RENDERED answer text,
+    # where the template attaches it to the specific claim — not merely somewhere
+    # in the payload's union of citations.
     want = f"{expected_source['locator']}, p.{expected_source['page']}"
-    if want not in answer.citations:
-        return [f"citation {want!r} not in {answer.citations}"]
+    if want not in answer.text:
+        return [f"citation {want!r} not in rendered answer: {answer.text!r}"]
     return []
 
 

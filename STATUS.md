@@ -8,12 +8,15 @@
 
 ## Where we are
 **Phase:** Query agent built (Phase 3/4 vertical slice, ADR-018) on top of the closed Phase 2
-graph (88 BenchmarkResults, deterministic IRIs). Natural-language question -> operation choice
--> code-built SPARQL -> sourced answer, with the LLM never writing SPARQL. Flagship proven live
-end-to-end ("Did XGBoost beat TabNet on Gesture?" -> XGBoost wins, Table 2, p.6, LLM narration
-passing the deterministic guard). Eval harness: 18/18 retrieval, 13/13 citation accuracy.
-59/59 tests green. CLI + FastAPI route share one loop. Awaiting review/commit.
-**Date of last update:** 2026-07-05
+graph (88 BenchmarkResults, deterministic IRIs), then HARDENED against a red-team of the query
+layer (`docs/redteam.md` → ADR-019). Natural-language question -> operation choice -> code-built
+SPARQL -> **deterministically-rendered** sourced answer: the LLM interprets the question but
+writes neither the SPARQL nor the answer sentence. 81/81 tests green (incl. 22 red-team
+regression tests, no xfail remaining). CLI + FastAPI route share one loop. Awaiting review/commit.
+**Eval:** checks are now claim-local and score the rendered answer (F5); 2 adversarial one-sided
+items added (20 total). **Live eval numbers must be re-run** against Fuseki+planner after this
+lands — the old "18/18 retrieval, 13/13 citation" predates the ADR-019 render + claim-local
+checks and is stale. **Date of last update:** 2026-07-05
 
 ADR-014 decided and implemented: emit_ttl now mints IRIs as
   :r_{paper_id}__{method_local}__{dataset_local}__{metric_local}
@@ -122,12 +125,29 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
       SPARQL-injection slot rejection, guard, seen/unseen ranks, API smoke), all green.
       Note: Opus 4.8 rejects the `temperature` param (deprecated) — planner/narrator calls
       send none.
+- [x] Red-team of the query layer + ADR-019 hardening (this session). Independent red-team
+      (`docs/redteam.md`) broke the sourced/non-fabricated guarantee at the semantic layer;
+      structural boundary (seam-3 injection) held. Fixes, no guard weakened: **F1** ADR-019 —
+      the default answer is rendered deterministically by code from the verified payload; free
+      LLM narration removed from the default path (opt-in `--llm-narration` only) and the
+      untrusted question never enters a narrator prompt; the provenance guard kept as
+      defense-in-depth. **F2** cross-paper conflation — a (method,dataset,metric) cell with >1
+      result now returns `multiple_sources` naming every source, `ORDER BY` made source-stable.
+      **F3** `seen_unseen` labels the queried method, not `rows[0]`. **F4** one-sided seen/unseen
+      refused like one-sided compare. **F5** eval scores the rendered answer with claim-local
+      value/citation checks + 2 adversarial items. **F6** planner reports each slot's surface
+      term; code re-derives resolution (`catalog.find`) to catch same-type mis-resolution and
+      collapse silent ambiguity. Tests 59 -> 81 (22 red-team regressions, all passing).
 
 ## Next actions (in order)
-1. IRI condition-slug — deferred to paper #2's noise condition (ADR-017).
-2. Add paper #2 through the honest gate; measure via sampled back-verification + a persisted
+1. **Land this hardening (top priority, before paper #2):** review + commit the ADR-019 change;
+   re-run the live eval (`python eval/run_eval.py`, needs Fuseki + ANTHROPIC_API_KEY) and record
+   the honest new retrieval/citation numbers here (the pre-ADR-019 figures are stale). Confirm
+   the flagship query still renders XGBoost/Gesture correctly end-to-end.
+2. IRI condition-slug — deferred to paper #2's noise condition (ADR-017).
+3. Add paper #2 through the honest gate; measure via sampled back-verification + a persisted
    review-decision log. Value-scale ADR must land first (parking lot).
-3. Extend the agent only on demonstrated need (ADR-016/018): next real question that doesn't fit
+4. Extend the agent only on demonstrated need (ADR-016/018): next real question that doesn't fit
    the 4 operations earns its operation (e.g. provenance/"where is this from?").
 
 ## Open questions / parking lot

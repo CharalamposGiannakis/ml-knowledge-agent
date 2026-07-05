@@ -3,7 +3,11 @@
 Usage:
     python -m agent "Did XGBoost beat TabNet on Gesture?"
     python -m agent --json "Which model was best on Rossmann?"
-    python -m agent --no-llm-narration --explain "..."
+    python -m agent --explain "..."
+
+Answers are rendered deterministically from the verified payload (ADR-019); the
+LLM never writes the answer sentence. `--llm-narration` opts into experimental
+LLM phrasing (guarded, and never shown the question) — off by default.
 
 Requires Fuseki up (docker compose up -d) and ANTHROPIC_API_KEY in .env for
 the planner. SELECTs are sent anonymously (ADR-016).
@@ -27,8 +31,11 @@ def main(argv=None) -> int:
     parser.add_argument("question", help="natural-language benchmark question")
     parser.add_argument("--json", action="store_true", dest="as_json",
                         help="print the full structured Answer as JSON")
+    parser.add_argument("--llm-narration", action="store_true",
+                        help="opt into experimental guarded LLM phrasing "
+                             "(default: deterministic template, ADR-019)")
     parser.add_argument("--no-llm-narration", action="store_true",
-                        help="use the deterministic template narration only")
+                        help=argparse.SUPPRESS)  # deprecated: now the default
     parser.add_argument("--explain", action="store_true",
                         help="also print operation, slots, and citations")
     args = parser.parse_args(argv)
@@ -45,7 +52,7 @@ def main(argv=None) -> int:
         args.question,
         backend=backend,
         catalog=catalog,
-        narrator=Narrator(use_llm=not args.no_llm_narration),
+        narrator=Narrator(use_llm=args.llm_narration),
     )
 
     if args.as_json:

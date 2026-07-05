@@ -14,7 +14,9 @@ candidates; question outside the library -> unsupported. Never a guess.
 from dataclasses import dataclass, field, asdict
 
 from agent.catalog import Catalog, short
-from agent.narrator import Narrator, citation_strings, template_answer
+from agent.narrator import (
+    Narrator, citation_strings, render_conflicts, template_answer,
+)
 from agent.operations import OPERATIONS, SlotError
 from agent.planner import LLMPlanner
 from agent.sparql import FusekiBackend
@@ -65,6 +67,49 @@ def _validate_slots(op, slots: dict, catalog: Catalog) -> str:
                 f"is a {entity.type}"
             )
     return ""
+
+
+def _check_resolution(op, slots: dict, slot_terms: dict, catalog: Catalog):
+    """Deterministic backstop on the planner's entity resolution (F6, ADR-019).
+
+    Membership + type checks (above) only catch a URI that is out-of-catalog or
+    the wrong kind; they cannot catch a *same-type mis-resolution* (the planner
+    filling the TabNet URI for a question it matched as 'XGBoost') or an
+    ambiguity it silently collapsed. Here code — not the planner's honor —
+    re-derives resolution from the surface term the planner reports:
+
+    * `catalog.find(term)` matching >1 entity -> ambiguous (in code).
+    * matching exactly one entity that isn't the planner's URI -> mismatch.
+    * matching none (the term isn't a verbatim label/alias) -> unverifiable, so
+      leave it: the catalog match is deliberately exact and cannot adjudicate a
+      paraphrase, and a false rejection would break legitimate resolutions.
+
+    Returns (status, text) to short-circuit, or None if nothing is provably
+    wrong. A slot with no reported term is skipped (our planner supplies them;
+    an absent term can't be adjudicated).
+    """
+    known = {**op.required_slots, **op.optional_slots}
+    for name, uri in slots.items():
+        if name not in known:
+            continue  # handled by _validate_slots
+        term = (slot_terms or {}).get(name)
+        if not term:
+            continue
+        cands = catalog.find(term)
+        if not cands:
+            continue  # term isn't a verbatim label/alias — not adjudicable
+        if len(cands) > 1:
+            options = "; ".join(f"{c.label} ({short(c.uri)})" for c in cands)
+            return ("ambiguous",
+                    f"'{term}' matches more than one entity: {options}. "
+                    "Please disambiguate.")
+        if cands[0].uri != uri:
+            ent = catalog.get(uri)
+            return ("error",
+                    f"resolution mismatch on slot '{name}': the term {term!r} "
+                    f"resolves to {cands[0].label!r} ({short(cands[0].uri)}), "
+                    f"not {ent.label if ent else short(uri)}.")
+    return None
 
 
 def answer_question(
@@ -130,6 +175,15 @@ def answer_question(
             slots=plan.slots, text=f"Query rejected before execution: {err}.",
         )
 
+    # F6: deterministic resolution backstop (mis-resolution / silent ambiguity).
+    res = _check_resolution(op, plan.slots, plan.slot_terms, catalog)
+    if res:
+        status, text = res
+        return Answer(
+            status=status, question=question, operation=op.name,
+            slots=plan.slots, text=text,
+        )
+
     # 2. execute — code-built SPARQL over validated catalog URIs only
     try:
         sparql = op.build_sparql(plan.slots)
@@ -148,7 +202,17 @@ def answer_question(
                  f"{_slot_labels(plan.slots, catalog)}.",
         )
 
-    shaped = op.shape(rows, plan.slots)
+    shaped = op.shape(rows, plan.slots, catalog)
+
+    # F2: a cell with more than one result is not a single answer — surface
+    # every disagreeing source rather than silently pick one (ADR-018/019).
+    if shaped.get("conflicts"):
+        return Answer(
+            status="multiple_sources", question=question, operation=op.name,
+            slots=plan.slots, shaped=shaped, citations=citation_strings(shaped),
+            text="The graph holds more than one result for this cell, so a "
+                 "single answer would be a guess. " + render_conflicts(shaped),
+        )
 
     # A pairwise comparison where only one side has data is not an answer.
     if shaped["kind"] == "compare_pair" and not shaped["comparisons"]:
@@ -161,8 +225,23 @@ def answer_question(
                  "share no (dataset, metric) here. " + partial,
         )
 
-    # 3. narrate + guard
-    text, source = narrator.narrate(question, shaped)
+    # F4: seen-vs-unseen with an empty bucket is one-sided, not a comparison.
+    if shaped["kind"] == "seen_unseen" and (
+            shaped["seen"]["n_datasets"] == 0
+            or shaped["unseen"]["n_datasets"] == 0):
+        present = "seen" if shaped["seen"]["n_datasets"] else "unseen"
+        missing = "unseen" if present == "seen" else "seen"
+        return Answer(
+            status="not_in_graph", question=question, operation=op.name,
+            slots=plan.slots, shaped=shaped, citations=citation_strings(shaped),
+            text=f"Can't compare seen vs unseen for {shaped['method_label']}: "
+                 f"it has annotated results only on {present} datasets, none "
+                 f"{missing} in the graph.",
+        )
+
+    # 3. render deterministically (ADR-019); LLM narration is opt-in and never
+    #    sees the question.
+    text, source = narrator.narrate(shaped)
     return Answer(
         status="answered", question=question, operation=op.name,
         slots=plan.slots, shaped=shaped, text=text,

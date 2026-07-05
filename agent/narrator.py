@@ -1,15 +1,21 @@
 """Narration: turn a shaped operation payload into prose — provably grounded.
 
-Two paths, both constrained to the returned rows and their SourceLocations:
+Per ADR-019 the DEFAULT answer path is deterministic: code renders the answer
+sentence from the verified payload (`template_answer`). The model never writes
+the asserted content — it only interprets the question upstream (resolve /
+select / fill slots). This closes red-team F1 (a token-provenance guard cannot
+tell a true sentence from a false one) by construction rather than by an
+ever-smarter guard.
 
-1. Deterministic templates (always available, always correct by construction).
-2. Optional LLM narration, accepted only if it passes the guard:
-   - every number in the prose already appears in the payload (values,
-     std errors, margins, ranks, pages, years, counts — nothing new), and
-   - at least one exact "<locator>, p.<page>" citation from the returned
-     SourceLocations is present.
-   A failed guard falls back to the template — a fluent-but-wrong sentence
-   never reaches the user.
+An optional LLM narrator is retained ONLY behind an explicit, non-default flag
+(`Narrator(use_llm=True)`). Even then:
+- the untrusted question is NEVER placed in the narrator prompt (no injection
+  path into answer wording), and
+- the `guard` below is applied as defense-in-depth (every number must already
+  appear in the payload; an exact "<locator>, p.<page>" citation must be
+  present), with any failure falling back to the deterministic template.
+The guard is a backstop, not the guarantee — the guarantee is that the default
+path never asks a model to assert anything.
 """
 import json
 import os
@@ -24,7 +30,8 @@ _NUM_RE = re.compile(r"-?\d+(?:\.\d+)?")
 
 NARRATE_SYSTEM = """\
 You narrate benchmark query results from a knowledge graph. The payload JSON
-you receive is the COMPLETE set of facts you may state.
+you receive is the COMPLETE set of facts you may state. You are given NO user
+question — narrate only what the payload asserts.
 
 Rules:
 1. Use only facts present in the payload. No outside knowledge, no arithmetic
@@ -169,12 +176,32 @@ def template_answer(shaped: dict) -> str:
     raise ValueError(f"no template for payload kind {kind!r}")
 
 
+def render_conflicts(shaped: dict) -> str:
+    """Honest text for a cell with more than one BenchmarkResult (F2). The
+    agent refuses to pick one; it names every disagreeing source instead."""
+    parts = []
+    for c in shaped.get("conflicts", []):
+        srcs = "; ".join(
+            f"{s['value']} ({s['citation']['paper']}, {s['citation']['locator']}, "
+            f"p.{s['citation']['page']})"
+            for s in c["sources"]
+        )
+        parts.append(
+            f"{c['method_label']} on {c['dataset_label']} by {c['metric_label']} "
+            f"has {len(c['sources'])} results in the graph ({srcs}); I won't "
+            f"silently pick one."
+        )
+    return " ".join(parts)
+
+
 # ── narrator ──────────────────────────────────────────────────────────────────
 
 class Narrator:
-    """LLM narration with guard; falls back to the deterministic template."""
+    """Answer rendering. Deterministic template by default (ADR-019); the LLM
+    path is opt-in (`use_llm=True`) and, even then, never sees the question and
+    must pass the `guard` or fall back to the template."""
 
-    def __init__(self, model: str = DEFAULT_MODEL, client=None, use_llm: bool = True):
+    def __init__(self, model: str = DEFAULT_MODEL, client=None, use_llm: bool = False):
         self.model = model
         self._client = client
         self.use_llm = use_llm
@@ -188,8 +215,10 @@ class Narrator:
             self._client = Anthropic()
         return self._client
 
-    def narrate(self, question: str, shaped: dict) -> tuple:
-        """Returns (text, source) with source in {'llm', 'template'}."""
+    def narrate(self, shaped: dict) -> tuple:
+        """Returns (text, source) with source in {'llm', 'template'}. The
+        question is deliberately NOT a parameter — no untrusted text reaches
+        the narrator prompt (ADR-019)."""
         fallback = template_answer(shaped)
         if not self.use_llm:
             return fallback, "template"
@@ -203,10 +232,7 @@ class Narrator:
                 system=NARRATE_SYSTEM,
                 messages=[{
                     "role": "user",
-                    "content": (
-                        f"Question: {question}\n\nPayload:\n"
-                        f"{json.dumps(shaped, indent=2)}"
-                    ),
+                    "content": f"Payload:\n{json.dumps(shaped, indent=2)}",
                 }],
             )
             text = "".join(b.text for b in response.content if b.type == "text").strip()

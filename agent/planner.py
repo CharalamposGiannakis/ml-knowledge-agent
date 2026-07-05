@@ -34,6 +34,15 @@ PLAN_TOOL = {
                                "catalog. Only slots the operation defines.",
                 "additionalProperties": {"type": "string"},
             },
+            "slot_terms": {
+                "type": "object",
+                "description": "Slot name -> the exact word/phrase from the "
+                               "QUESTION that you matched to fill that slot "
+                               "(the surface term, e.g. 'XGB' or 'Gesture "
+                               "Phase'). Code re-checks each against the "
+                               "catalog, so give one for every filled slot.",
+                "additionalProperties": {"type": "string"},
+            },
             "ambiguities": {
                 "type": "array",
                 "description": "Question terms that match MORE THAN ONE "
@@ -85,7 +94,11 @@ Rules:
    report the term in unresolved_terms — never 'unsupported'.
 5. Only fill the 'metric' slot if the question names a metric; otherwise leave
    it out and the operation covers all metrics on that dataset.
-6. Always answer via the submit_plan tool.
+6. For every slot you fill, also record in slot_terms the exact surface term
+   from the question that you matched (the label or alias, not a paraphrase).
+   Code re-derives resolution from it, so a term that doesn't match the URI you
+   chose will be rejected.
+7. Always answer via the submit_plan tool.
 
 Operations:
 {operations}
@@ -99,6 +112,7 @@ Catalog:
 class Plan:
     operation: str
     slots: dict = field(default_factory=dict)
+    slot_terms: dict = field(default_factory=dict)
     ambiguities: list = field(default_factory=list)
     unresolved_terms: list = field(default_factory=list)
     note: str = ""
@@ -139,6 +153,7 @@ class LLMPlanner:
         return Plan(
             operation=p.get("operation", "unsupported"),
             slots=p.get("slots") or {},
+            slot_terms=p.get("slot_terms") or {},
             ambiguities=p.get("ambiguities") or [],
             unresolved_terms=p.get("unresolved_terms") or [],
             note=p.get("note") or "",

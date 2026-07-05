@@ -128,9 +128,11 @@ extraction precision.
 
 ## Query agent (`agent/` — the Phase-3/4 vertical slice)
 
-Natural-language question → sourced answer, under the ADR-018 trust boundary: **the LLM never
-writes SPARQL**. Every query the agent can run is hand-written, parameterised, and tested in
-`agent/operations.py`; the model only chooses among them and narrates the rows they return.
+Natural-language question → sourced answer, under the ADR-018/019 trust boundary: **the LLM never
+writes SPARQL, and never writes the answer sentence**. Every query the agent can run is
+hand-written, parameterised, and tested in `agent/operations.py`; the model only *interprets* the
+question (resolve → select → fill slots), and code renders the answer deterministically from the
+verified rows.
 
 ```
 question ──▶ RESOLVE+SELECT (LLM, forced tool call: operation + slot URIs
@@ -143,16 +145,23 @@ question ──▶ RESOLVE+SELECT (LLM, forced tool call: operation + slot URIs
                   │
                   ▼
              SHAPE (deterministic: winners/ranks from :optimizationDirection,
-             citations from :SourceLocation, seen/unseen from ADR-017 annotation)
+             citations from :SourceLocation, seen/unseen from ADR-017 annotation;
+             a cell with >1 result is surfaced, never silently collapsed — F2)
                   │
                   ▼
-             NARRATE (LLM prose over the shaped payload only)
+             RENDER (deterministic template over the verified payload — this IS
+             the default answer, ADR-019; the model writes none of it)
                   │
                   ▼
-             GUARD (deterministic: every number in the prose must exist in the
-             payload; an exact "<locator>, p.<page>" citation must be present;
-             failure falls back to the always-correct template narration)
+             [opt-in only] LLM phrasing behind a flag, never shown the question,
+             and still gated by the provenance GUARD as defense-in-depth
 ```
+
+The token-provenance guard (every number in prose must exist in the payload; an exact
+"<locator>, p.<page>" citation must be present) is retained but demoted: the red-team
+(`docs/redteam.md` F1) showed it is truth-blind — real tokens compose into false sentences that
+pass — so ADR-019 removed free LLM narration from the default path rather than trust a guard to
+police natural language. The guard is now a backstop for the opt-in mode, not the guarantee.
 
 **The loop** (`agent/loop.py`, `answer_question`) is shared by both frontends: the CLI
 (`python -m agent "..."`) and the FastAPI route (`agent/api.py`, `POST /ask`).
@@ -164,19 +173,24 @@ planner prompt) — added only when a real question demands one (ADR-016/018).
 
 **Honesty contract** (statuses of `Answer`): empty result → `not_in_graph`; term matching no
 label/alias → `not_in_graph` naming the term; term matching >1 entity → `ambiguous` with the
-candidates; question shape outside the library → `unsupported` ("I can't express that yet");
-a pairwise comparison where only one side has data is *not* an answer (honest partial +
-citation). Never a guess.
+candidates (detected in code from the planner's surface term, not on its honor — F6); a
+resolution mismatch (the planner's URI ≠ what the surface term resolves to) → `error` (F6); a
+pairwise comparison where only one side has data, or a seen-vs-unseen with an empty bucket, is
+*not* an answer (honest partial + citation — F4); a (method, dataset, metric) cell with more than
+one result → `multiple_sources`, naming every source rather than silently picking one (F2);
+question shape outside the library → `unsupported` ("I can't express that yet"). Never a guess.
 
 **Known limit:** comparisons are within (dataset, metric) in one graph; the stored-as-printed
 ×100 cross-entropy scale (STATUS parking lot) means cross-paper comparisons need the value-scale
 ADR before paper #2 lands.
 
-**Eval** (`eval/eval_set.jsonl` + `eval/run_eval.py`, ADR-006): 18 question→expected-outcome
-pairs incl. honest-refusal and disambiguation cases; reports retrieval accuracy (status /
-winner / value / ranks) and citation accuracy (locator+page). The eval runs the real loop
-against live Fuseki with the real planner; narration is templated during eval because scoring
-is structural, not prose.
+**Eval** (`eval/eval_set.jsonl` + `eval/run_eval.py`, ADR-006/019): question→expected-outcome
+pairs incl. honest-refusal, disambiguation, and adversarial one-sided cases; reports retrieval
+accuracy (status / winner / value / ranks) and citation accuracy (locator+page). Since ADR-019
+the default answer is the deterministic render, so the eval scores *the text the user sees*, and
+the checks are claim-local (F5): an expected value is matched against the answer's headline value
+(the queried/winning entity's), not any number in the payload, and the expected citation must
+appear in the rendered answer, not merely somewhere in the payload's citation set.
 
 ---
 

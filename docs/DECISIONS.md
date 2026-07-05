@@ -258,8 +258,35 @@ a confident wrong answer. Operations are added only when a real question demands
 **Consequences.** Entity resolution reuses the SKOS alias infrastructure from ADR-013. The agent
 holds read-only credentials (ADR-016), so no query can mutate the graph. Narration is constrained to
 returned rows + their SourceLocations; the agent adds no facts.
+**Errata (ADR-019).** "narrates the returned rows" originally meant *free-form LLM prose behind a
+token-provenance guard*. The red-team (`docs/redteam.md` F1) showed that guard is truth-blind;
+ADR-019 supersedes the narration half of this ADR — the asserted answer is now rendered
+deterministically by code, and the LLM never writes the answer sentence.
 **Rejected.** Text-to-SPARQL (LLM writes the query) — violates the ADR-009 boundary on the query
 side; schema-validation can't catch semantic errors. Text-to-SPARQL-with-validation-gate — PARKED as
 a documented future option (cf. ADR-008) for when the operation library demonstrably can't express a
 needed question; not built pre-emptively. Bare templates without entity resolution — brittle on
 naming variants.
+
+### ADR-019 — The model interprets; code asserts. Narration is deterministic.
+**Decision.** The query agent's answer text is rendered deterministically by code from a
+structured, verified payload (winner, per-entity values, optimization direction, citation). The
+LLM is confined to interpretation — resolving entities, selecting the operation, filling slots
+(all language-in tasks). It does NOT write the asserted content of the answer. Free-form LLM
+narration is removed from the default answer path (retained, if at all, only behind an explicit
+non-default flag, and the untrusted question is never placed in a narrator prompt). The narration
+guard is kept as defense-in-depth, not as the primary guarantee.
+**Why.** The red-team (`docs/redteam.md`, F1) showed the token-provenance guard is truth-blind:
+real numbers + a real citation + real methods compose into false sentences that pass, and metadata
+digits (locator, page, year) leak into the allowed-value set; the untrusted question reaches the
+narrator prompt, a direct injection path. Provenance of tokens is not truth of the sentence, and a
+smarter guard is an unwinnable arms race against natural language. The principled fix is the
+symmetry already applied to data (ADR-009) and queries (ADR-018): the model never writes the formal
+artifact. Extending it to the answer sentence closes the seam by construction and removes the
+injection path (the question no longer influences answer wording).
+**Consequences.** Answers are structured objects rendered to prose by code; the eval scores the
+rendered answer claim-locally (revises ADR-006's harness). Shapers must produce correct, honest
+payloads (red-team F2/F3/F4). At four operations, four templates suffice; revisit only if the
+operation library grows large (ADR-016).
+**Rejected.** Guard-as-truth-checker (unbounded NL attack surface; F1's permutations are the tip).
+Keeping free LLM narration as default behind a better guard (same arms race).

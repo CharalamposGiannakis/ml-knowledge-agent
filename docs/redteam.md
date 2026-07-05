@@ -25,6 +25,28 @@ forcing the marker to be removed — so the finding can never silently return.
 
 ---
 
+## STATUS — RESOLVED (2026-07-05, ADR-019 + hardening pass)
+
+All six findings are now fixed and the tripwires converted to plain passing
+regression tests in `tests/test_redteam_query.py` (no `xfail` remains):
+
+| # | Fix | Where |
+|---|---|---|
+| F1 | Deterministic template is the DEFAULT answer path; free LLM narration removed from it (opt-in flag only) and the question never enters a narrator prompt. The guard is kept as defense-in-depth, not the guarantee. | ADR-019; `agent/narrator.py`, `agent/loop.py`, `agent/cli.py` |
+| F2 | `>1` result per (method,dataset,metric) cell → `multiple_sources` status naming every source; `ORDER BY` made source-stable; conflicts surfaced for all three lookup/compare/rank ops. | `agent/operations.py` (`_conflicts`), `agent/loop.py` |
+| F3 | `seen_unseen` labels the answer with the queried method (catalog entry / its own rows), never `rows[0]`. | `agent/operations.py` |
+| F4 | `seen_unseen` with an empty bucket returns a not-two-sided status, like one-sided `compare_pair`. | `agent/loop.py` |
+| F5 | Eval scores the rendered answer; value check is claim-local (headline value), citation must appear in the rendered text; adversarial one-sided items added. | `eval/run_eval.py`, `eval/eval_set.jsonl` |
+| F6 | The planner reports each slot's surface term; code re-derives resolution (`catalog.find`): >1 match → ambiguous, single non-matching URI → mismatch error. | `agent/planner.py`, `agent/loop.py` (`_check_resolution`) |
+
+The F1 tripwires were re-pointed from "the guard should reject false prose" (a
+truth-checker ADR-019 explicitly rejects) to "the default path is code-rendered
+and the question never reaches a narrator" — the architecture that actually
+closes the seam. The details below are the original report, retained as the
+rationale for those fixes.
+
+---
+
 ## F1 — CRITICAL — The narration guard is truth-blind
 
 **Seam:** narration. **Repro:** `test_seam4_*` (4 tripwires).

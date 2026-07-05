@@ -113,6 +113,33 @@ def _ranked(rows: list, direction_uri: str) -> list:
     return sorted(rows, key=lambda r: float(r["value"]), reverse=direction_uri == HIGHER)
 
 
+def _conflicts(rows: list) -> list:
+    """(method, dataset, metric) cells carrying more than one BenchmarkResult.
+
+    ADR-018/019 forbid silently picking one (or averaging): when a cell has
+    several results (e.g. two papers, or two rows for the same paper), the loop
+    surfaces every source instead of guessing. Deterministic ordering (see the
+    SPARQL ORDER BY) makes the representative row stable, but the conflict is
+    still reported — a stable arbitrary pick is still an arbitrary pick.
+    """
+    cells: dict = {}
+    for r in rows:
+        cells.setdefault((r["method"], r["dataset"], r["metric"]), []).append(r)
+    out = []
+    for (_m, _d, _mt), rs in cells.items():
+        if len(rs) > 1:
+            out.append({
+                "method_label": rs[0]["methodLabel"],
+                "dataset_label": rs[0]["datasetLabel"],
+                "metric_label": rs[0]["metricLabel"],
+                "sources": [
+                    {"value": float(x["value"]), "citation": _citation(x)}
+                    for x in rs
+                ],
+            })
+    return out
+
+
 # ── compare_pair (flagship) ───────────────────────────────────────────────────
 
 def _compare_sparql(slots: dict) -> str:
@@ -123,11 +150,11 @@ def _compare_sparql(slots: dict) -> str:
         + f"  VALUES ?dataset {{ {_uri(slots, 'dataset')} }}\n"
         + _metric_clause(slots)
         + _RESULT_BLOCK
-        + "}\nORDER BY ?metricLabel ?methodLabel\n"
+        + "}\nORDER BY ?metricLabel ?methodLabel ?locator ?page\n"
     )
 
 
-def _compare_shape(rows: list, slots: dict) -> dict:
+def _compare_shape(rows: list, slots: dict, catalog=None) -> dict:
     a_uri, b_uri = slots["method_a"], slots["method_b"]
     by_metric: dict = {}
     for r in rows:
@@ -147,7 +174,7 @@ def _compare_shape(rows: list, slots: dict) -> dict:
             winner = None
         else:
             winner = _best([ra, rb], direction)
-        comparisons.append({
+        comp = {
             "metric": metric_uri,
             "metric_label": ra["metricLabel"],
             "direction": _direction_word(direction),
@@ -156,11 +183,21 @@ def _compare_shape(rows: list, slots: dict) -> dict:
             "winner": None if winner is None else winner["method"],
             "winner_label": "tie" if winner is None else winner["methodLabel"],
             "margin": round(abs(va - vb), 6),
-        })
+        }
+        # F2: more than one row per method on this cell -> disagreeing sources.
+        if len(a) > 1 or len(b) > 1:
+            comp["sources"] = {
+                ra["methodLabel"]: [{**_citation(r), "value": float(r["value"])}
+                                    for r in a],
+                rb["methodLabel"]: [{**_citation(r), "value": float(r["value"])}
+                                    for r in b],
+            }
+        comparisons.append(comp)
     return {
         "kind": "compare_pair",
         "comparisons": comparisons,
         "one_sided": partial,  # rows where only one of the two methods has data
+        "conflicts": _conflicts(rows),  # cells with multiple results (F2)
     }
 
 
@@ -173,11 +210,11 @@ def _best_sparql(slots: dict) -> str:
         + f"  VALUES ?dataset {{ {_uri(slots, 'dataset')} }}\n"
         + _metric_clause(slots)
         + _RESULT_BLOCK
-        + "}\nORDER BY ?metricLabel ?value\n"
+        + "}\nORDER BY ?metricLabel ?value ?locator ?page\n"
     )
 
 
-def _best_shape(rows: list, slots: dict) -> dict:
+def _best_shape(rows: list, slots: dict, catalog=None) -> dict:
     by_metric: dict = {}
     for r in rows:
         by_metric.setdefault(r["metric"], []).append(r)
@@ -195,7 +232,8 @@ def _best_shape(rows: list, slots: dict) -> dict:
                 {"rank": i + 1, **_row_view(r)} for i, r in enumerate(ordered)
             ],
         })
-    return {"kind": "best_on_dataset", "rankings": rankings}
+    return {"kind": "best_on_dataset", "rankings": rankings,
+            "conflicts": _conflicts(rows)}  # F2
 
 
 # ── lookup_result ─────────────────────────────────────────────────────────────
@@ -208,12 +246,13 @@ def _lookup_sparql(slots: dict) -> str:
         + f"  VALUES ?dataset {{ {_uri(slots, 'dataset')} }}\n"
         + _metric_clause(slots)
         + _RESULT_BLOCK
-        + "}\nORDER BY ?metricLabel\n"
+        + "}\nORDER BY ?metricLabel ?locator ?page\n"
     )
 
 
-def _lookup_shape(rows: list, slots: dict) -> dict:
-    return {"kind": "lookup_result", "results": [_row_view(r) for r in rows]}
+def _lookup_shape(rows: list, slots: dict, catalog=None) -> dict:
+    return {"kind": "lookup_result", "results": [_row_view(r) for r in rows],
+            "conflicts": _conflicts(rows)}  # F2
 
 
 # ── seen_unseen (ADR-017 annotation aggregate) ────────────────────────────────
@@ -230,11 +269,11 @@ def _seen_unseen_sparql(slots: dict) -> str:
         + "          :usesMetric ?metric ;\n"
         + "          :datasetSeenByModel ?targetSeen .\n"
         + _RESULT_BLOCK
-        + "}\nORDER BY ?datasetLabel ?value\n"
+        + "}\nORDER BY ?datasetLabel ?value ?locator ?page\n"
     )
 
 
-def _seen_unseen_shape(rows: list, slots: dict) -> dict:
+def _seen_unseen_shape(rows: list, slots: dict, catalog=None) -> dict:
     target = slots["method"]
     by_key: dict = {}
     for r in rows:
@@ -271,13 +310,26 @@ def _seen_unseen_shape(rows: list, slots: dict) -> dict:
             "wins": sum(1 for r in ranks if r == 1),
         }
 
+    # F3: label the answer with the QUERIED method, never rows[0] (which is
+    # whichever method sorted first). Prefer the catalog entry; fall back to
+    # the target's own rows when no catalog is passed (e.g. a direct shaper
+    # call in a unit test).
+    method_label = None
+    if catalog is not None and catalog.get(target) is not None:
+        method_label = catalog.get(target).label
+    if method_label is None:
+        method_label = next(
+            (r["methodLabel"] for r in rows if r["method"] == target), None
+        )
+
     return {
         "kind": "seen_unseen",
         "method": target,
-        "method_label": rows[0]["methodLabel"] if rows else None,
+        "method_label": method_label,
         "seen": _summary(buckets["seen"]),
         "unseen": _summary(buckets["unseen"]),
         "per_dataset": per_dataset,
+        "conflicts": _conflicts(rows),  # F2
         "note": "Ranks are within (dataset, metric) against all methods in the "
                 "graph; direction per the metric's optimizationDirection.",
     }
