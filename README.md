@@ -1,124 +1,60 @@
 # ML Engineering Knowledge Agent
 
-A personal intelligent research assistant built on a structured knowledge graph of ML Engineering literature. The system answers precise, sourced questions about method comparisons, training conditions, and empirical results — grounded entirely in what specific papers actually reported.
+Most systems that answer questions from documents cite a source and call it grounded. A citation only proves the numbers are real. It says nothing about whether the sentence built from them is true, and I learned that by breaking my own system. Closing that gap is what this project is actually about.
 
----
+It's a research agent over a curated knowledge graph of ML benchmark results. You ask it something in plain English (*did XGBoost beat TabNet on the Gesture dataset?*) and it answers with the exact figure and where the figure came from: paper, table, page. If the graph doesn't hold the answer, it says so. It never guesses, and it can't invent a number; not because a filter screens the output, but because of how it's wired. The language model never writes a fact.
 
-## The Problem This Solves
+![The agent answering a sourced question, refusing an "ignore the metric" attack, disambiguating an ambiguous term, and admitting what it doesn't know](docs/demo.gif)
 
-Reading ML papers is slow. Most of a paper is context, motivation, and related work. The part that actually matters — *method A outperformed method B by X% on metric Y under condition Z* — is buried in a table on page 8, written in a way that makes it hard to retrieve later.
+## The one idea
 
-General-purpose LLMs can discuss these papers in broad terms, but they hallucinate specifics, conflate results from different conditions, and cannot tell you which table a claim came from. A vector database of paper chunks helps with retrieval but still hands unstructured text to the model and hopes for the best.
+![The one idea — the model proposes intent, code writes every fact, three times over](docs/one-idea.svg)
 
-This project takes a different approach. Every claim is extracted, structured, validated, and stored as a first-class entity in an OWL/RDF knowledge graph before the agent ever touches it. When you ask a question, the answer is either in the graph — with a source — or it isn't.
+Three times over: putting a paper in, running a query, stating an answer. The model proposes intent and code writes the formal artifact. The model reads the language coming in; it authors none of the facts going out. A fact that isn't in the graph has no path into an answer, because there is no step where the model holds the pen over an asserted claim.
 
----
+I reached that design by getting it wrong first. An earlier version let the model write the answer sentence, behind a guard that checked every number in the prose against the retrieved rows. It felt safe. Then I red-teamed it and the guard fell in an afternoon: real numbers, a real citation, and the right method names reassemble into "XGBoost beat TabNet, 0.2 to 0.3", a sentence that's false three ways and passes every check, because provenance of the tokens is not truth of the sentence. A smarter guard is an arms race against language that you lose. Taking the pen out of the model's hand is not. The attacks I ran and how each was closed are in [docs/redteam.md](docs/redteam.md).
 
-## What It Does
+## Where it stands, honestly
 
-You ask a natural language question. The agent translates it into a structured query against the knowledge graph, retrieves matching comparison records, and gives you a direct answer with an exact citation: paper, authors, table or figure, page number.
+One paper is fully ingested: Shwartz-Ziv & Armon (2022), 88 benchmark results, every value checked by hand against the source table. The query agent is built and hardened. It retrieves the right result on all 20 evaluation questions and cites the right table on every one that has an answer, and the six attacks that once broke it now run as regression tests. That proves non-fabrication, not breadth. The graph knows one paper deeply and says "not in the graph" to everything else, which is the honest behavior and the point. Adding papers is mechanical work I left until the one-paper answer was trustworthy.
 
-A concrete example:
+## How it works
 
-> *"For a tabular classification problem with around 5,000 rows and noisy labels, what does the literature say about Random Forest vs XGBoost?"*
+A paper enters as a PDF. A vision model reads the results table as an image, which survives the ± symbols, scientific notation, and footnote markers that wreck plain-text extraction, and proposes strict JSON — one record per cell. Code turns that JSON into RDF triples; the model never writes Turtle. Before anything reaches the graph it passes a SHACL gate that rejects a result with no source, a dangling reference, or a metric with no defined direction. Then I review the flagged records by hand. Nothing is auto-committed.
 
-The system finds result records that match those conditions, derives the comparison at query time, and responds with something like:
+On the query side, the model resolves the entities in your question to canonical URIs, reusing the same alias table the graph already holds, and picks one of four hand-written, tested SPARQL operations (compare, rank, look up, seen-versus-unseen). Code fills the query, runs it read-only, and renders the answer from the verified rows. The model chooses the shape; it never writes the query or the sentence.
 
-> *Based on [Author et al., 2022], Table 3: Random Forest achieved 2.3% higher F1 than XGBoost on the dataset described (n=4,800, 30% label noise, 42 features). The authors note this advantage narrows when label noise drops below 15%.*
+The stored unit is a single BenchmarkResult — one method's value, on one dataset, by one metric, with its source. A comparison is never stored. It's derived at query time by matching two results that share a dataset and metric, which handles the N-way tables papers actually print instead of exploding into stored pairs.
 
-If the graph does not contain a comparison that covers your conditions, it says so. No fabrication, no vague synthesis from half-remembered training data.
+## Why RDF and SPARQL
 
----
-
-## Core Design Philosophy
-
-**Depth over volume.** A single well-extracted paper — every comparison condition captured, every caveat preserved, every claim traceable to a specific location — is worth more than fifty papers processed carelessly. The graph grows slowly and deliberately. Papers are only added after manual review of the extracted triples.
-
-This is not a pipeline that ingests everything it can find. It is a curated knowledge base that earns the right to make claims.
-
-**Every fact has a source.** No triple enters the graph without a direct link to the paper it came from, the section or table it appeared in, and the exact conditions under which the reported result holds. The moment provenance becomes optional, the system becomes unreliable.
-
-**Conditions are not optional metadata.** The finding that Random Forest beats XGBoost is meaningless without knowing the dataset size, the feature types, the evaluation metric, and the experimental setup. The ontology captures conditions whenever present; a result with partial conditions is accepted with a flag so the agent can caveat its answer, rather than being rejected outright and losing the data. See `docs/DESIGN.md` for decisions in force (ADR-003).
-
-**The model interprets; code asserts.** The LLM in this system is not asked to read papers and answer from memory. It interprets the question — resolving names to entities, choosing which structured query to run, filling its slots — and that is *all* it does. It never writes the query (ADR-018), never writes the stored data (ADR-009), and never writes the asserted answer sentence, which is rendered deterministically by code from the verified result (ADR-019). Because the model authors none of the formal artifacts, an answer cannot contain a fact that is not in the graph. The knowledge lives in the graph; the model only handles language *going in*.
-
----
-
-## What Gets Extracted
-
-The knowledge graph is organized around one atomic unit: a **BenchmarkResult** — one method's measured value on one dataset, by one metric, under specific conditions, with a traceable source. Comparisons between methods are not stored; they are derived at query time by matching results that share the same dataset, metric, and conditions.
-
-Each result record captures:
-
-- The method being evaluated
-- The metric and its value (including standard error when reported)
-- The dataset or dataset characteristics
-- The conditions that define when the result holds (dataset size, noise level, feature types, class imbalance, etc.)
-- The exact source: paper, year, table or figure, page
-
-The ontology also captures relationships between concepts — how methods relate to families, how conditions relate to problem types, how papers relate to each other through citations. This lets the agent answer questions at different levels of specificity: "what do we know about tree-based methods on small datasets" as well as "exactly how did LightGBM perform on the Higgs dataset in this specific paper."
-
----
+A single SQL table would have answered every query in this repo in a weekend. I chose the heavier semantic-web stack for two honest reasons: I wanted to learn it properly, and provenance and validation are first-class here in a way they aren't in a plain database. SHACL rejects malformed data at the door, and every triple traces to a paper by construction. The cost is real complexity, so I held one rule the whole way through. At every step there had to be a runnable end-to-end path, even with one paper. That rule is what keeps a project like this from turning into a beautiful ontology with nothing inside it.
 
 ## Scope
 
-The domain is ML Engineering — the practical, empirical side of machine learning. The papers that belong here are the ones that test methods against each other, study the effect of training decisions, or characterize when a technique works and when it breaks down.
+The domain is empirical ML engineering: papers that test methods against each other, or study when a technique works and when it breaks. Supervised-learning comparisons, the effect of data conditions like label noise or class imbalance, training and inference tradeoffs. Not theory papers, and not architecture proposals with no comparison. The corpus grows slowly; a paper earns its place when it adds something the graph doesn't already cover.
 
-This includes supervised learning comparisons across algorithm families, studies of training dynamics and optimizer behavior, the effect of data conditions like class imbalance or distribution shift, feature engineering and preprocessing choices, and inference and deployment tradeoffs. It does not include theoretical proofs, architecture proposals without empirical comparison, or papers that benchmark only against baselines from five years ago.
+## Built, and what's next
 
-The corpus starts small — a few dozen carefully chosen papers — and grows only when a new paper adds something the graph does not already cover.
+Working today: the OWL/RDF ontology on Apache Jena Fuseki, the vision extraction pipeline (one paper through it end to end), a four-layer health harness (SHACL gate, SPARQL invariants, adversarial fixtures, a semantic eval set), and the query agent over both a CLI and a FastAPI endpoint, with its red-team regression suite.
 
----
-
-## Architecture Overview
-
-**Ingestion.** A paper enters the pipeline as a PDF. An LLM reads it and proposes structured triples. Those proposals go through a manual review step before anything is committed to the graph. The review is not a bottleneck — it is the quality gate that makes everything else trustworthy.
-
-**Knowledge graph.** An OWL/RDF ontology defines the schema. A triple store (Apache Jena Fuseki) stores the instances and serves SPARQL queries. The schema is designed once, carefully, before any data is loaded.
-
-**Semantic layer.** Paper abstracts and condition descriptions are embedded and stored in a vector database alongside the graph. This handles cases where the SPARQL query is too rigid — where the question uses different terminology than the paper did.
-
-**Agent.** A FastAPI backend exposes the knowledge base to an LLM agent with tool access. The agent chooses between structured SPARQL queries, semantic similarity search, or both, depending on the question. It merges the results and produces a sourced answer.
-
-**Interface.** A minimal local chat interface. Two modes: query the existing graph, or submit a new paper for ingestion review.
-
----
-
-## Status Today vs. Roadmap
-
-The sections above describe the target system. What's actually built and live today: the
-OWL/RDF ontology, the Apache Jena Fuseki graph store, the SHACL pre-load gate + SPARQL
-invariant health harness, a working (manually-invoked) extraction pipeline — one paper
-(Shwartz-Ziv & Armon, 2022) reviewed into 88 `BenchmarkResult` records — and the query agent
-(`agent/` package): natural-language question -> entity resolution -> one of 4 parameterised
-SPARQL operations -> a deterministically-rendered, sourced answer (ADR-019: the model never
-writes the answer sentence), available via CLI and a FastAPI backend (`POST /ask`), with a
-claim-local eval. The semantic/vector layer (ChromaDB) and the
-chat interface described above are roadmap, not yet built. `STATUS.md` and
-`docs/DECISIONS.md` are the authoritative, current state; this README is the destination,
-not a status report.
-
----
+Next: a value-scale decision before the second paper, so a ×100-scaled loss never gets compared against an unscaled one; then more papers. Further out, a vector layer for fuzzier matching and a small web UI. Both roadmap, and not done.
 
 ## Stack
 
 | Component | Technology |
 |---|---|
-| PDF parsing | PyMuPDF |
-| Extraction | Anthropic API |
+| PDF parsing / rendering | PyMuPDF |
+| Extraction | Anthropic API (vision) |
 | Knowledge graph | OWL/RDF + Apache Jena Fuseki |
-| Vector store | ChromaDB |
+| Validation | SHACL + SPARQL invariants |
+| Query agent | Anthropic API, tool-use for operation selection |
 | Backend | FastAPI |
-| Agent | Anthropic API with tool use |
-| Frontend | Vanilla JS |
+| Vector store (roadmap) | ChromaDB |
 
----
+## The reasoning trail
 
-## Why This Exists
-
-This is a personal tool. There are no other users, no deadlines, no institutional constraints. Every design decision is made in favor of correctness and long-term usefulness, not speed of development or breadth of coverage.
-
-The goal is a system that, six months from now, gives a more reliable answer to a question about ML method selection than any general-purpose tool available — because it has read the relevant papers carefully, structured what they actually said, and remembered it exactly.
+Every decision that wasn't obvious is written down as an ADR in [docs/DECISIONS.md](docs/DECISIONS.md). There are nineteen of them, each with the alternatives I rejected and why. The red-team is in [docs/redteam.md](docs/redteam.md). I built this with AI coding tools doing the mechanical work, but the architecture, the rejected paths, and every commit are mine, and the ADR log is the record of that thinking. If you want to understand why the project is shaped the way it is, start there.
 
 ---
 
