@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/CharalamposGiannakis/ml-knowledge-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/CharalamposGiannakis/ml-knowledge-agent/actions/workflows/ci.yml)
 
-CI runs the offline test suite only (no Fuseki, no API key). The live eval (`eval/run_eval.py`, needs both) is a documented manual step in [CLAUDE.md](CLAUDE.md#how-to-run), not part of CI.
+CI runs two jobs. `test` is the offline suite (no Fuseki, no API key). `graph-pipeline` stands up a real Fuseki with this repo's actual `docker-compose.yml` (shiro mount included) and runs the deterministic half of the pipeline end-to-end: the SHACL gate, a real load, all 9 SPARQL invariants (`scripts/healthcheck.py`), the flagship 88-`BenchmarkResult` count, and the anon-read/auth-write security posture (ADR-016) — an unauthenticated SELECT gets 200, an unauthenticated write gets 401. What CI can't cover is anything touching the Anthropic API: extraction and the query planner need a real key, so the live eval (`eval/run_eval.py`) and a CLI spot-check stay a documented manual step in [CLAUDE.md](CLAUDE.md#how-to-run).
 
 Most systems that answer questions from documents cite a source and call it grounded. A citation only proves the numbers are real. It says nothing about whether the sentence built from them is true, and I learned that by breaking my own system. Closing that gap is what this project is actually about.
 
@@ -59,6 +59,10 @@ Next: a value-scale decision before the second paper, so a ×100-scaled loss nev
 ## The reasoning trail
 
 Every decision that wasn't obvious is written down as an ADR in [docs/DECISIONS.md](docs/DECISIONS.md). There are nineteen of them, each with the alternatives I rejected and why. The red-team is in [docs/redteam.md](docs/redteam.md). I built this with AI coding tools doing the mechanical work, but the architecture, the rejected paths, and every commit are mine, and the ADR log is the record of that thinking. If you want to understand why the project is shaped the way it is, start there.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
