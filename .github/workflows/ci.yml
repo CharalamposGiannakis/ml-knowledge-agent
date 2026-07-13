@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - run: pip install -r requirements.txt
+
+      # Offline suite only: no Fuseki, no ANTHROPIC_API_KEY in CI. Every test
+      # under tests/ runs against in-memory rdflib graphs and fixtures (see
+      # tests/conftest.py) or stubs out the LLM/network boundary directly, so
+      # `pytest` here is already the full offline set — nothing to mark or skip.
+      # The live eval (eval/run_eval.py, needs Fuseki + a real API key) is a
+      # documented manual step, not part of CI.
+      - run: pytest tests/ -v

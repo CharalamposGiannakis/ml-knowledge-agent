@@ -1,5 +1,9 @@
 # ML Engineering Knowledge Agent
 
+[![CI](https://github.com/CharalamposGiannakis/ml-knowledge-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/CharalamposGiannakis/ml-knowledge-agent/actions/workflows/ci.yml)
+
+CI runs the offline test suite only (no Fuseki, no API key). The live eval (`eval/run_eval.py`, needs both) is a documented manual step in [CLAUDE.md](CLAUDE.md#how-to-run), not part of CI.
+
 Most systems that answer questions from documents cite a source and call it grounded. A citation only proves the numbers are real. It says nothing about whether the sentence built from them is true, and I learned that by breaking my own system. Closing that gap is what this project is actually about.
 
 It's a research agent over a curated knowledge graph of ML benchmark results. You ask it something in plain English (*did XGBoost beat TabNet on the Gesture dataset?*) and it answers with the exact figure and where the figure came from: paper, table, page. If the graph doesn't hold the answer, it says so. It never guesses, and it can't invent a number; not because a filter screens the output, but because of how it's wired. The language model never writes a fact.
