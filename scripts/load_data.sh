@@ -16,6 +16,23 @@ ADMIN_PW="${FUSEKI_ADMIN_PASSWORD}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# Portable interpreter resolution (L3): some environments only expose
+# `python`, not `python3` (or vice versa) — and on Windows, `python3` can
+# resolve to the Microsoft Store's App Execution Alias stub, which exists on
+# PATH but fails to run. So a candidate must actually execute, not merely
+# resolve. Respect an explicit $PYTHON override first, then prefer python3,
+# then fall back to python.
+if [ -z "${PYTHON:-}" ]; then
+  if command -v python3 >/dev/null 2>&1 && python3 --version >/dev/null 2>&1; then
+    PYTHON=python3
+  elif command -v python >/dev/null 2>&1 && python --version >/dev/null 2>&1; then
+    PYTHON=python
+  else
+    echo "ERROR: neither python3 nor python is a working interpreter on PATH." >&2
+    exit 1
+  fi
+fi
+
 # Single bounded reachability check — not a retry loop. If Fuseki is mid
 # restart-loop (see init_fuseki.sh) this fails fast instead of handing curl's
 # connection-refused error straight to the user.
@@ -25,7 +42,7 @@ if ! curl -fsS -m 5 "${FUSEKI_URL}/\$/ping" >/dev/null 2>&1; then
 fi
 
 echo "==> SHACL gate: validating ${FILE} ..."
-python3 "${SCRIPT_DIR}/validate_shapes.py" "${FILE}"
+"${PYTHON}" "${SCRIPT_DIR}/validate_shapes.py" "${FILE}"
 
 echo "==> Loading ${FILE} into ${DATASET} ..."
 status="$(curl -sS -o /dev/null -w '%{http_code}' -u "${ADMIN_USER}:${ADMIN_PW}" \

@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - run: pip install -r requirements.txt
+
+      # Offline suite only: no Fuseki, no ANTHROPIC_API_KEY in CI. Every test
+      # under tests/ runs against in-memory rdflib graphs and fixtures (see
+      # tests/conftest.py) or stubs out the LLM/network boundary directly, so
+      # `pytest` here is already the full offline set — nothing to mark or skip.
+      # The live eval (eval/run_eval.py, needs Fuseki + a real API key) is a
+      # documented manual step, not part of CI.
+      - run: pytest tests/ -v
+
+  # Runs the deterministic half of the graph pipeline end-to-end against a
+  # real Fuseki: SHACL gate -> load -> 9 SPARQL invariants -> the flagship
+  # 88-result count -> the anon-read/auth-write security posture (ADR-016).
+  # No ANTHROPIC_API_KEY needed — extraction and the query planner are the
+  # only LLM-touching steps, and they stay a documented manual check.
+  #
+  # Deliberately NOT an Actions `services:` container: our shiro.ini mount
+  # (docker-compose.yml) overrides the stock image's config, which by
+  # default denies anonymous SPARQL query/read. A `services:` container
+  # starts before checkout and can't mount a repo file, so it would run the
+  # image's stock (wrong) auth posture instead of ours. Standing up Fuseki
+  # via our own `docker compose up -d` after checkout exercises the actual
+  # configuration, shiro mount included — the same command a human runs
+  # locally, not a CI-only substitute.
+  #
+  # Independent of the `test` job (no shared state, nothing gated on the
+  # other's result) so both run in parallel for faster feedback.
+  graph-pipeline:
+    runs-on: ubuntu-latest
+    env:
+      # Plain env var, not a GitHub Secret: this password only ever guards
+      # an ephemeral, throwaway container that dies with the job. A Secret
+      # here would protect nothing and imply a security property that
+      # doesn't exist.
+      FUSEKI_ADMIN_PASSWORD: ci-throwaway-not-a-secret
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - run: pip install -r requirements.txt
+
+      # Real docker-compose.yml, real shiro mount — same command as
+      # `make up` / the README quickstart, not a CI-specific substitute.
+      - run: docker compose up -d
+
+      - name: Wait for Fuseki readiness
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS -m 3 "http://localhost:3030/\$/ping" >/dev/null 2>&1; then
+              echo "up."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "UNREACHABLE: Fuseki did not come up after 30s." >&2
+          docker compose logs fuseki
+          exit 1
+
+      - name: Init dataset + load ontology (scripts/init_fuseki.sh)
+        run: bash scripts/init_fuseki.sh
+
+      - name: SHACL gate + load reviewed data (scripts/load_data.sh)
+        run: bash scripts/load_data.sh data/shwartzziv2022_full.ttl
+
+      - name: SPARQL invariant health checks (scripts/healthcheck.py, all 9 must pass)
+        run: python3 scripts/healthcheck.py
+
+      - name: Assert BenchmarkResult count == 88
+        run: |
+          count="$(curl -fsS "http://localhost:3030/mlkg/query" \
+            --data-urlencode 'query=PREFIX : <http://mlkg.local/ontology#> SELECT (COUNT(?r) AS ?n) WHERE { ?r a :BenchmarkResult }' \
+            -H "Accept: text/csv" | tail -n1 | tr -d '\r')"
+          echo "BenchmarkResult count: ${count}"
+          if [ "${count}" != "88" ]; then
+            echo "FAIL: expected 88 BenchmarkResult, got ${count}" >&2
+            exit 1
+          fi
+
+      - name: Assert security posture — anon SELECT is allowed (200)
+        run: |
+          status="$(curl -sS -o /dev/null -w '%{http_code}' "http://localhost:3030/mlkg/query" \
+            --data-urlencode 'query=SELECT * WHERE { ?s ?p ?o } LIMIT 1')"
+          echo "anon SELECT status: ${status}"
+          if [ "${status}" != "200" ]; then
+            echo "FAIL: anon SELECT expected 200 (ADR-016 read-open posture), got ${status}" >&2
+            exit 1
+          fi
+
+      - name: Assert security posture — anon GSP write is rejected (401)
+        run: |
+          status="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H "Content-Type: text/turtle" \
+            --data-binary '@ontology/mlkg.ttl' \
+            "http://localhost:3030/mlkg/data?default")"
+          echo "anon write status: ${status}"
+          if [ "${status}" != "401" ]; then
+            echo "FAIL: anon GSP write expected 401 (write-gated posture), got ${status}" >&2
+            exit 1
+          fi
+
+      - name: Fuseki logs
+        if: failure()
+        run: docker compose logs fuseki
