@@ -7,12 +7,12 @@
 ---
 
 ## Where we are
-**Phase:** Query agent built (Phase 3/4 vertical slice, ADR-018) on top of the closed Phase 2
-graph (88 BenchmarkResults, deterministic IRIs), then HARDENED against a red-team of the query
-layer (`docs/redteam.md` → ADR-019). Natural-language question -> operation choice -> code-built
-SPARQL -> **deterministically-rendered** sourced answer: the LLM interprets the question but
+**v1 COMPLETE — portfolio-ready.** One paper fully ingested (Shwartz-Ziv & Armon 2022, 88
+BenchmarkResults, deterministic IRIs). Query agent built (ADR-018) and HARDENED against an
+independent red-team of the query layer (`docs/redteam.md` → ADR-019): natural-language question
+-> operation choice -> code-built SPARQL -> **deterministically-rendered** sourced answer, LLM
 writes neither the SPARQL nor the answer sentence. 81/81 tests green (incl. 22 red-team
-regression tests, no xfail remaining). CLI + FastAPI route share one loop. Awaiting review/commit.
+regression tests, no xfail remaining). CLI + FastAPI route share one loop.
 **Eval:** checks are claim-local and score the rendered answer (F5); 2 adversarial one-sided
 items included (20 total). **Live eval re-run 2026-07-06** against Fuseki (88-result graph,
 healthcheck all 9 invariants green) + live planner: **retrieval 20/20 (100%), citation 13/13
@@ -27,7 +27,12 @@ correct with the right citation. No `multiple_sources` case exists to spot-check
 by direct SPARQL (`GROUP BY method,dataset,metric HAVING COUNT(?r)>1`) that the single-paper
 88-result graph has zero cells with >1 result, consistent with ADR-014's dedup-by-construction;
 that status path stays covered by its existing unit/red-team tests only until paper #2 lands.
-**Date of last update:** 2026-07-06
+**CI is green on both jobs**: the offline pytest suite, and a live `graph-pipeline` job that
+stands up a real Fuseki (this repo's actual `docker-compose.yml`, shiro mount included) and runs
+the deterministic half of the pipeline end-to-end — SHACL gate, load, all 9 healthcheck
+invariants, the 88-BenchmarkResult count, and the anon-read/auth-write security posture
+(ADR-016). Repo hygiene landed: MIT license, CI workflow, README badge, gitignore hygiene.
+**Date of last update:** 2026-07-14
 
 ADR-014 decided and implemented: emit_ttl now mints IRIs as
   :r_{paper_id}__{method_local}__{dataset_local}__{metric_local}
@@ -149,25 +154,37 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
       value/citation checks + 2 adversarial items. **F6** planner reports each slot's surface
       term; code re-derives resolution (`catalog.find`) to catch same-type mis-resolution and
       collapse silent ambiguity. Tests 59 -> 81 (22 red-team regressions, all passing).
+- [x] ADR-019 hardening landed (reviewed and committed — the six red-team fixes above, F1-F6).
+- [x] Repo hygiene: MIT license, CI workflow (`test` job), README CI badge, `.gitignore` cleanup.
+- [x] Fuseki-in-CI: second CI job (`graph-pipeline`) runs the pipeline against a real Fuseki
+      brought up via this repo's actual `docker-compose.yml` (shiro mount included, no Actions
+      `services:` substitute) — SHACL gate, load, all 9 healthcheck invariants,
+      `COUNT(:BenchmarkResult) == 88`, and the anon-read/auth-write security posture (anon SELECT
+      200, anon GSP write 401). No API key needed; runs parallel to the offline `test` job.
+      Verified live locally against real Docker/Fuseki before landing, catching a real bug in the
+      process: `scripts/load_data.sh`'s python resolution now verifies a candidate interpreter
+      actually runs (not just resolves on PATH) — on this machine `python3` resolves to a
+      non-functional Windows Store alias stub, which `command -v` alone would have missed.
 
-## Next actions (in order)
-1. **Land this hardening (top priority, before paper #2):** review + commit the ADR-019 change.
-   Live eval re-run is done (20/20 retrieval, 13/13 citation, 2026-07-06) and the flagship
-   XGBoost/Gesture query is confirmed correct end-to-end via both eval and CLI — this item is
-   just the review/commit itself now.
-2. IRI condition-slug — deferred to paper #2's noise condition (ADR-017).
-3. Add paper #2 through the honest gate; measure via sampled back-verification + a persisted
-   review-decision log. Value-scale ADR must land first (parking lot). Paper #2 will also be
-   the first real chance to exercise `multiple_sources` (unreachable with one paper only).
-4. Extend the agent only on demonstrated need (ADR-016/018): next real question that doesn't fit
-   the 4 operations earns its operation (e.g. provenance/"where is this from?").
+## Backlog (optional — not a march, pick up if/when the reason applies)
+- **Value-scale ADR** — needed only before paper #2 lands: stored-as-printed ×100 factors
+  (e.g. cross-entropy) will silently miscompare against an unscaled paper's version of the same
+  metric. No urgency while the graph holds one paper.
+- **Paper #2** — when there's a real reason to use the tool on a second paper. Will also be the
+  first real chance to exercise `multiple_sources` (unreachable with one paper; unit/red-team
+  tests cover it until then) and will need a persisted review-decision log (audit H3/ADR-004) —
+  "measured, not asserted" reliability currently only holds for paper #1's hand-made gold.
+- **Minimal web UI** — nice-to-have, not load-bearing: the terminal demo GIF already carries the
+  non-fabrication story end-to-end.
 
-## Open questions / parking lot
-- Paper year (ADR-011 rule) and dataset dedup when a dataset first recurs in a new paper.
-- Value-scale policy (audit M2): stored-as-printed ×100 factors will silently miscompare
-  against an unscaled paper #2 — needs an ADR before the next paper lands.
-- Persisted review-decision log (audit H3/ADR-004): no accept/edit/reject log exists yet;
-  "measured, not asserted" reliability only holds for paper #1's hand-made gold.
-
-## Known issues / risks
+## Known limits
+- **CI covers the deterministic half of the pipeline only** — SHACL gate, load, the 9 SPARQL
+  invariants, and pure functions. Every LLM-touching path (extraction, the query planner, the
+  live eval) is verified manually with a real API key, not in CI. This is the gap that let the
+  `temperature` param bug ship undetected (extraction silently sent a param Opus 4.8 rejects)
+  until a manual run caught it — CI would not have caught it either, since it can't call the API.
+- `multiple_sources` is unreachable with a single-paper graph; covered by unit/red-team tests
+  only, not by the live eval or a real query.
 - Cross-entropy 100x factor stored as printed (cancels within-table; preserved in caption/metric_raw).
+- Paper year (ADR-011 rule) and dataset dedup when a dataset first recurs in a new paper — open
+  question, deferred until paper #2 makes it concrete.
