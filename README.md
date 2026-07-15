@@ -2,8 +2,6 @@
 
 [![CI](https://github.com/CharalamposGiannakis/ml-knowledge-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/CharalamposGiannakis/ml-knowledge-agent/actions/workflows/ci.yml)
 
-CI runs two jobs. `test` is the offline suite (no Fuseki, no API key). `graph-pipeline` stands up a real Fuseki with this repo's actual `docker-compose.yml` (shiro mount included) and runs the deterministic half of the pipeline end-to-end: the SHACL gate, a real load, all 9 SPARQL invariants (`scripts/healthcheck.py`), the flagship 88-`BenchmarkResult` count, and the anon-read/auth-write security posture (ADR-016) — an unauthenticated SELECT gets 200, an unauthenticated write gets 401. What CI can't cover is anything touching the Anthropic API: extraction and the query planner need a real key, so the live eval (`eval/run_eval.py`) and a CLI spot-check stay a documented manual step in [CLAUDE.md](CLAUDE.md#how-to-run).
-
 Most systems that answer questions from documents cite a source and call it grounded. A citation only proves the numbers are real. It says nothing about whether the sentence built from them is true, and I learned that by breaking my own system. Closing that gap is what this project is actually about.
 
 It's a research agent over a curated knowledge graph of ML benchmark results. You ask it something in plain English (*did XGBoost beat TabNet on the Gesture dataset?*) and it answers with the exact figure and where the figure came from: paper, table, page. If the graph doesn't hold the answer, it says so. It never guesses, and it can't invent a number; not because a filter screens the output, but because of how it's wired. The language model never writes a fact.
@@ -55,6 +53,10 @@ Next: a value-scale decision before the second paper, so a ×100-scaled loss nev
 | Query agent | Anthropic API, tool-use for operation selection |
 | Backend | FastAPI |
 | Vector store (roadmap) | ChromaDB |
+
+## Tests and CI
+
+CI runs two jobs. `test` is the offline suite (no Fuseki, no API key). `graph-pipeline` stands up a real Fuseki with this repo's actual `docker-compose.yml` (shiro mount included) and runs the deterministic half of the pipeline end-to-end: the SHACL gate, a real load, all 9 SPARQL invariants (`scripts/healthcheck.py`), the flagship 88-`BenchmarkResult` count, and the anon-read/auth-write security posture (ADR-016) — an unauthenticated SELECT gets 200, an unauthenticated write gets 401. What CI can't cover is anything touching the Anthropic API: extraction and the query planner need a real key, so the live eval (`eval/run_eval.py`) and a CLI spot-check stay a documented manual step in [CLAUDE.md](CLAUDE.md#how-to-run).
 
 ## The reasoning trail
 
