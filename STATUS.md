@@ -32,7 +32,12 @@ stands up a real Fuseki (this repo's actual `docker-compose.yml`, shiro mount in
 the deterministic half of the pipeline end-to-end — SHACL gate, load, all 9 healthcheck
 invariants, the 88-BenchmarkResult count, and the anon-read/auth-write security posture
 (ADR-016). Repo hygiene landed: MIT license, CI workflow, README badge, gitignore hygiene.
-**Date of last update:** 2026-07-14
+**Date of last update:** 2026-08-06
+
+**Since v1 (2026-08-06):** Two things resolved to a decision point. A real, precisely-reproducible Fuseki ontology-reload bug was
+root-caused (not yet fixed — full detail in Done, fix candidates in Backlog); it does
+not affect a first-time clone-and-run. A web UI is built on `feature/web-ui`, pending
+the author's own manual test before merging to main.
 
 ADR-014 decided and implemented: emit_ttl now mints IRIs as
   :r_{paper_id}__{method_local}__{dataset_local}__{metric_local}
@@ -165,6 +170,30 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
       process: `scripts/load_data.sh`'s python resolution now verifies a candidate interpreter
       actually runs (not just resolves on PATH) — on this machine `python3` resolves to a
       non-functional Windows Store alias stub, which `command -v` alone would have missed.
+- [x] Root-caused a real Fuseki ontology-reload bug (2026-08-06, live diagnostic
+      session). Mechanism: POST-to-`/data?default` merges rather than replaces —
+      named-URI triples (results, methods, datasets) dedupe correctly under set
+      semantics, but blank nodes get a fresh identifier on every parse, so any
+      blank-node-rooted axiom (owl:Restriction, owl:AllDisjointClasses, any
+      owl:oneOf) duplicates on a repeat ontology load into an already-populated
+      store. Isolated empirically in two stages: (1) reloading the DATA file
+      (`shwartzziv2022_full.ttl`) twice into the same container left both
+      blank-node-rooted triples (41->41) and BenchmarkResult count (88->88)
+      unchanged — clean, because ADR-014's deterministic IRIs mean it contains no
+      blank nodes; (2) reposting `ontology/mlkg.ttl` alone into that same running
+      container exactly doubled blank-node-rooted triples (41->82) and
+      owl:Restriction count (5->10), BenchmarkResult count unchanged (88). The
+      committed ontology source is clean (5 owl:Restriction, 361 triples total,
+      confirmed independently via grep + rdflib against `main`) — this is a
+      load-path bug, not data corruption. **Does not affect first-time setup:**
+      `make init`/`init_fuseki.sh` always target a fresh empty dataset; only a
+      *repeat* ontology load into a populated store triggers it — a
+      returning-developer scenario. Not fixed yet; candidates identified: (a) a
+      startup guard refusing an ontology load into a non-empty store, same
+      fail-loud pattern as the missing-password check; (b) a 10th healthcheck
+      invariant asserting owl:Restriction count == 5 post-load. Deferred — see
+      Backlog. Side finding: `docs/ONTOLOGY.md`'s stated "289 triples" is stale
+      (actual: 361); same class of drift, needs a doc pass alongside the fix.
 
 ## Backlog (optional — not a march, pick up if/when the reason applies)
 - **Value-scale ADR** — needed only before paper #2 lands: stored-as-printed ×100 factors
@@ -174,8 +203,13 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
   first real chance to exercise `multiple_sources` (unreachable with one paper; unit/red-team
   tests cover it until then) and will need a persisted review-decision log (audit H3/ADR-004) —
   "measured, not asserted" reliability currently only holds for paper #1's hand-made gold.
-- **Minimal web UI** — nice-to-have, not load-bearing: the terminal demo GIF already carries the
-  non-fabrication story end-to-end.
+- **Web UI** — built on `feature/web-ui`, not yet merged to main. Pending a manual
+  pass by the author; merge once confirmed working. Until then the CLI + demo GIF
+  remain the non-fabrication story on main.
+- **Ontology-reload guard + 10th healthcheck invariant** — closes the bug above
+  (see Done for full root cause). Low urgency: doesn't affect first-time setup,
+  only a repeat ontology load into a populated store. Natural to pick up alongside
+  the next real reason to touch the ontology (paper #2, or the value-scale ADR).
 
 ## Known limits
 - **CI covers the deterministic half of the pipeline only** — SHACL gate, load, the 9 SPARQL
@@ -188,3 +222,7 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
 - Cross-entropy 100x factor stored as printed (cancels within-table; preserved in caption/metric_raw).
 - Paper year (ADR-011 rule) and dataset dedup when a dataset first recurs in a new paper — open
   question, deferred until paper #2 makes it concrete.
+- Fuseki ontology reload into an already-populated store duplicates blank-node-rooted
+  axioms (owl:Restriction, owl:AllDisjointClasses) — root-caused 2026-08-06, not yet
+  fixed. Doesn't affect a first-time clone-and-run; only a repeat ontology load into a
+  live store triggers it. Full investigation in Done; fix candidates in Backlog.
