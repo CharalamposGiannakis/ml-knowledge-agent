@@ -9,12 +9,17 @@ The route holds no write credentials and reuses answer_question unchanged —
 one loop, two frontends. The catalog is fetched once per process and reused;
 restart (or POST /refresh-catalog) after loading new data.
 """
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from agent.catalog import Catalog
 from agent.loop import answer_question
 from agent.sparql import FusekiBackend
+
+_INDEX_HTML = Path(__file__).parent / "index.html"
 
 app = FastAPI(
     title="MLKG query agent",
@@ -23,6 +28,11 @@ app = FastAPI(
 )
 
 _state: dict = {}
+
+
+@app.get("/")
+def index() -> FileResponse:
+    return FileResponse(_INDEX_HTML)
 
 
 def _get_catalog_and_backend():

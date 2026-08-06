@@ -211,6 +211,11 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
   only a repeat ontology load into a populated store. Natural to pick up alongside
   the next real reason to touch the ontology (paper #2, or the value-scale ADR).
 
+## Known behaviors
+- The `ambiguous` disambiguation path exists but is rarely reached — the planner resolves vague
+  questions by declining (`unsupported`) rather than asking. Safe default; revisit if it matters
+  when the corpus grows.
+
 ## Known limits
 - **CI covers the deterministic half of the pipeline only** — SHACL gate, load, the 9 SPARQL
   invariants, and pure functions. Every LLM-touching path (extraction, the query planner, the
