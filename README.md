@@ -8,6 +8,27 @@ It's a research agent over a curated knowledge graph of ML benchmark results. Yo
 
 ![The agent answering a sourced question, refusing an "ignore the metric" attack, disambiguating an ambiguous term, and admitting what it doesn't know](docs/demo.gif)
 
+## Try it yourself
+
+Needs Docker and an [Anthropic API key](https://console.anthropic.com). On Windows, run
+this from Git Bash, not a plain PowerShell/cmd prompt.
+
+    git clone https://github.com/CharalamposGiannakis/ml-knowledge-agent.git
+    cd ml-knowledge-agent
+    cp .env.example .env                        # set FUSEKI_ADMIN_PASSWORD + ANTHROPIC_API_KEY
+    python3 -m pip install -r requirements.txt
+    set -a && source .env && set +a
+    docker compose up -d && bash scripts/init_fuseki.sh
+    bash scripts/load_data.sh data/shwartzziv2022_full.ttl
+    python3 -m agent "Did XGBoost beat TabNet on Gesture?"
+
+That's a sourced answer — winner, value, citation — drawn only from the paper's 88
+results. Ask something it doesn't have (`... "Did LightGBM beat XGBoost on Gesture?"`)
+to see the honest refusal instead of a guess.
+
+Full reference — health checks, the eval harness, the FastAPI route — in
+[CLAUDE.md](CLAUDE.md#how-to-run).
+
 ## The one idea
 
 ![The one idea — the model proposes intent, code writes every fact, three times over](docs/one-idea.svg)
