@@ -47,9 +47,12 @@ table/figure, page). If the graph lacks the answer, it says so. No fabrication.
 
 ## How to run
 Prereqs: Docker + Docker Compose. (No host Java needed — the image bundles it.)
+On Windows, run these from Git Bash — a plain PowerShell/cmd prompt's `bash` can resolve to a
+non-functional WSL relay shim instead of Git's real bash.
 
     cp .env.example .env                              # set FUSEKI_ADMIN_PASSWORD (once)
-    source .env                                       # export vars into current shell
+    python3 -m pip install -r requirements.txt
+    set -a && source .env && set +a   # .env has no 'export' keywords, so plain source won't propagate to subprocesses
     docker compose up -d                              # start Fuseki at http://localhost:3030
     bash scripts/init_fuseki.sh                       # create dataset 'mlkg', load ontology, smoke query
     make load-data FILE=data/<reviewed>.ttl           # SHACL gate + POST (preferred)
@@ -62,7 +65,7 @@ Prereqs: Docker + Docker Compose. (No host Java needed — the image bundles it.
 
     # Query agent (ADR-018; needs ANTHROPIC_API_KEY in .env for the planner)
     python3 -m agent "Did XGBoost beat TabNet on Gesture?"   # CLI (--explain, --json, --no-llm-narration)
-    uvicorn agent.api:app --port 8000                        # same loop over HTTP: POST /ask {"question": ...}
+    python3 -m uvicorn agent.api:app --port 8000              # same loop over HTTP: POST /ask {"question": ...}
     python3 eval/run_eval.py                                 # eval harness: retrieval + citation accuracy
 
 **Note:** `make init` will fail loudly if `FUSEKI_ADMIN_PASSWORD` is not set in `.env` — this is
