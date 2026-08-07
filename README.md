@@ -26,6 +26,13 @@ That's a sourced answer — winner, value, citation — drawn only from the pape
 results. Ask something it doesn't have (`... "Did LightGBM beat XGBoost on Gesture?"`)
 to see the honest refusal instead of a guess.
 
+Prefer a browser? Once the steps above are running, start the same agent as a
+local page instead of the CLI:
+
+    python3 -m uvicorn agent.api:app --port 8000
+
+Open `http://localhost:8000` and ask it something there.
+
 Full reference — health checks, the eval harness, the FastAPI route — in
 [CLAUDE.md](CLAUDE.md#how-to-run).
 
@@ -59,9 +66,9 @@ The domain is empirical ML engineering: papers that test methods against each ot
 
 ## Built, and what's next
 
-Working today: the OWL/RDF ontology on Apache Jena Fuseki, the vision extraction pipeline (one paper through it end to end), a four-layer health harness (SHACL gate, SPARQL invariants, adversarial fixtures, a semantic eval set), and the query agent over both a CLI and a FastAPI endpoint, with its red-team regression suite.
+Working today: the OWL/RDF ontology on Apache Jena Fuseki, the vision extraction pipeline (one paper through it end to end), a four-layer health harness (SHACL gate, SPARQL invariants, adversarial fixtures, a semantic eval set), the query agent over a CLI and a FastAPI endpoint with its red-team regression suite, and a small web UI over that same loop.
 
-Next: a value-scale decision before the second paper, so a ×100-scaled loss never gets compared against an unscaled one; then more papers. Further out, a vector layer for fuzzier matching and a small web UI. Both roadmap, and not done.
+Next: a value-scale decision before the second paper, so a ×100-scaled loss never gets compared against an unscaled one; then more papers. Further out, a vector layer for fuzzier matching — roadmap, not done.
 
 ## Stack
 
@@ -73,6 +80,7 @@ Next: a value-scale decision before the second paper, so a ×100-scaled loss nev
 | Validation | SHACL + SPARQL invariants |
 | Query agent | Anthropic API, tool-use for operation selection |
 | Backend | FastAPI |
+| Frontend | Vanilla JS, served by the same FastAPI process |
 | Vector store (roadmap) | ChromaDB |
 
 ## Tests and CI
