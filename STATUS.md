@@ -34,10 +34,11 @@ invariants, the 88-BenchmarkResult count, and the anon-read/auth-write security 
 (ADR-016). Repo hygiene landed: MIT license, CI workflow, README badge, gitignore hygiene.
 **Date of last update:** 2026-08-06
 
-**Since v1 (2026-08-06):** Two things resolved to a decision point. A real, precisely-reproducible Fuseki ontology-reload bug was
-root-caused (not yet fixed — full detail in Done, fix candidates in Backlog); it does
-not affect a first-time clone-and-run. A web UI is built on `feature/web-ui`, pending
-the author's own manual test before merging to main.
+**Since v1 (2026-08-06):** Two things resolved. A real, precisely-reproducible
+Fuseki ontology-reload bug was root-caused (not yet fixed — full detail in
+Done, fix candidates in Backlog); it does not affect a first-time clone-and-run.
+A web UI was built, manually tested end-to-end against the live graph, and
+merged to main (`feature/web-ui`, see Done).
 
 ADR-014 decided and implemented: emit_ttl now mints IRIs as
   :r_{paper_id}__{method_local}__{dataset_local}__{metric_local}
@@ -194,6 +195,16 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
       invariant asserting owl:Restriction count == 5 post-load. Deferred — see
       Backlog. Side finding: `docs/ONTOLOGY.md`'s stated "289 triples" is stale
       (actual: 361); same class of drift, needs a doc pass alongside the fix.
+- [x] Web UI merged (`feature/web-ui` -> `main`, 2026-08-06): a minimal static
+      `agent/index.html`, served by the existing FastAPI app at `GET /` — same
+      process, same `/ask` route, no separate server or build step (the
+      "vanilla JS, no build" approach from the original design). Manually
+      tested end-to-end against the live 88-result graph before merging: a
+      flagship comparison, a seen/unseen aggregate, and an ambiguous-entity
+      question ("the ensemble") all rendered correctly with the right status
+      and citation. The answered / refused / ambiguous states get visibly
+      distinct styling — an honest "no" is styled calmly, not as an error,
+      matching the CLI's own honesty contract at the UI layer.
 
 ## Backlog (optional — not a march, pick up if/when the reason applies)
 - **Value-scale ADR** — needed only before paper #2 lands: stored-as-printed ×100 factors
@@ -203,9 +214,6 @@ correctly labelled (5 unseen datasets) and excluded from precision denominator.
   first real chance to exercise `multiple_sources` (unreachable with one paper; unit/red-team
   tests cover it until then) and will need a persisted review-decision log (audit H3/ADR-004) —
   "measured, not asserted" reliability currently only holds for paper #1's hand-made gold.
-- **Web UI** — built on `feature/web-ui`, not yet merged to main. Pending a manual
-  pass by the author; merge once confirmed working. Until then the CLI + demo GIF
-  remain the non-fabrication story on main.
 - **Ontology-reload guard + 10th healthcheck invariant** — closes the bug above
   (see Done for full root cause). Low urgency: doesn't affect first-time setup,
   only a repeat ontology load into a populated store. Natural to pick up alongside
